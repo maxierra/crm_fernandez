@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión</title>
+  <!-- Cargar Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px; /* Ampliar el ancho del contenedor para el título */
+    }
+    .title-card {
+      background-color: #ff4d4d; /* Rojo brillante */
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      width: 110%; /* Ancho completo del contenedor */
+    }
+    .title-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .card {
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 400px; /* Ancho fijo para el formulario */
+      margin: 0 auto; /* Centrar el formulario horizontalmente */
+    }
+    .card-title {
+      font-size: 24px;
+    }
+    .form-control::placeholder {
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-card">
+      <h2>Bienvenidos al Sistema CRM Inmobiliario</h2>
+      <h1>Fernande Lopez</h1>
+    </div>
+    <div class="card shadow">
+      <div class="card-body">
+        <form action="/login" method="post">
+          <div class="form-group">
+            <label for="username">Nombre de usuario:</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Ingrese su nombre de usuario" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Ingrese su contraseña" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Cargar Bootstrap JS y dependencias -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

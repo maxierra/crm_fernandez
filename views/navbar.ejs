@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Professional Sidebar Navigation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --sidebar-hover: #f8f9fa;
+            --text-color: #495057;
+            --accent-color: #007bff;
+            --border-color: #e9ecef;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            height: 100%;
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            transition: all var(--transition-speed) ease;
+            z-index: 1000;
+            overflow-x: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h3 {
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .sidebar-nav {
+            padding: 30px 0 0 0;
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 12px 20px;
+            transition: all var(--transition-speed) ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: var(--sidebar-hover);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .sidebar-nav a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed) ease;
+        }
+
+        .submenu a {
+            padding-left: 50px;
+            font-size: 0.9em;
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+        }
+
+        .toggle-btn::after {
+            content: '\f105';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            float: right;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .toggle-btn.active::after {
+            transform: rotate(90deg);
+        }
+
+        #sidebarCollapse {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all var(--transition-speed) ease;
+            border-radius: 4px;
+        }
+
+        #sidebarCollapse:hover {
+            background-color: #0056b3;
+        }
+
+        #content {
+            transition: margin-left var(--transition-speed) ease;
+            padding: 20px;
+            margin-left: 0;
+        }
+
+        #content.active {
+            margin-left: 250px;
+        }
+    </style>
+</head>
+<body>
+    <button id="sidebarCollapse">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Menú</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="/indice-icl"><i class="fas fa-chart-line"></i> Índices ICL</a></li>
+            <li><a href="/contratos"><i class="fas fa-file-contract"></i> Contratos</a></li>
+            
+            <!-- Alquileres Menu -->
+            <li>
+                <a href="#" class="toggle-btn"><i class="fas fa-building"></i> Alquileres</a>
+                <ul class="submenu">
+                    <li><a href="/cobro-alquileres"><i class="fas fa-money-bill-wave"></i> Cobro de Alquileres</a></li>
+                    <li><a href="/pago-alquileres"><i class="fas fa-money-check-alt"></i> Pago de Alquileres</a></li>
+                    <li><a href="/expensas"><i class="fas fa-receipt"></i> Expensas</a></li>
+                </ul>
+            </li>
+
+            <!-- Venta de Propiedades Menu -->
+            <li>
+                <a href="#" class="toggle-btn"><i class="fas fa-store"></i> Venta de Propiedades</a>
+                <ul class="submenu">
+                    <li><a href="/venta-propiedades"><i class="fas fa-tag"></i> Venta de Propiedades</a></li>
+                </ul>
+            </li>
+            
+            <li><a href="/reportes"><i class="fas fa-chart-pie"></i> Reportes</a></li>
+            <li><a href="/configuracion"><i class="fas fa-cog"></i> Configuración</a></li>
+            <li><a href="/caja-diaria"><i class="fas fa-cash-register"></i> Caja Diaria</a></li>
+            <li><a href="/documentacion"><i class="fas fa-file-alt"></i> Documentación</a></li>
+            <li><a href="/reclamos"><i class="fas fa-comments"></i> Reclamos</a></li>
+            <li><a href="/login"><i class="fas fa-sign-out-alt"></i> Salir</a></li>
+        </ul>
+    </div>
+
+    <div id="content">
+        <!-- Your main content goes here -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtns = document.querySelectorAll('.toggle-btn');
+            const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const sidebar = document.querySelector('.sidebar');
+            const content = document.getElementById('content');
+
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.classList.toggle('active');
+                    const submenu = this.nextElementSibling;
+                    if (submenu.style.maxHeight) {
+                        submenu.style.maxHeight = null;
+                    } else {
+                        submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    }
+                });
+            });
+
+            sidebarCollapse.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                content.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
