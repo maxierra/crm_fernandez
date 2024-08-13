@@ -1,0 +1,114 @@
+router.get('/resumen', (req, res) => {
+    const sqlContratos = `
+        SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe
+        FROM contratos
+    `;
+
+    const sqlIndiceIPC = `
+        SELECT fecha, valor_ICL
+        FROM indice_ipc
+    `;
+
+    db.all(sqlContratos, [], (err, contratos) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al obtener los contratos' });
+        }
+
+        db.all(sqlIndiceIPC, [], (err, indices) => {
+            if (err) {
+                return res.status(500).json({ error: 'Error al obtener los valores IPC' });
+            }
+
+            const convertirFecha = (fecha) => {
+                const [ano, mes, dia] = fecha.split('-');
+                return `${dia}/${mes}/${ano}`;
+            };
+
+            const obtenerValorIPC = (fecha) => {
+                const fechaFormateada = convertirFecha(fecha);
+                const indice = indices.find(indice => indice.fecha === fechaFormateada);
+                return indice ? indice.valor_ICL : 0;
+            };
+
+            const generarFechasTrimestres = (inicio, fin, tipoIncremento) => {
+                const fechas = [];
+                let fechaInicio = new Date(inicio);
+                const fechaFin = new Date(fin);
+                let trimestreCount = 1;
+
+                while (fechaInicio <= fechaFin) {
+                    let fechaFinTrimestre = new Date(fechaInicio);
+                    fechaFinTrimestre.setMonth(fechaFinTrimestre.getMonth() + tipoIncremento - 1);
+                    fechaFinTrimestre.setDate(new Date(fechaFinTrimestre.getFullYear(), fechaFinTrimestre.getMonth() + 1, 0).getDate());
+
+                    if (fechaFinTrimestre > fechaFin) {
+                        fechaFinTrimestre = fechaFin;
+                    }
+
+                    fechas.push({
+                        trimestre: `Trimestre ${trimestreCount}`,
+                        inicio: fechaInicio.toISOString().split('T')[0],
+                        fin: fechaFinTrimestre.toISOString().split('T')[0]
+                    });
+
+                    fechaInicio.setMonth(fechaInicio.getMonth() + tipoIncremento);
+                    trimestreCount++;
+                }
+
+                return fechas;
+            };
+
+            const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
+                if (valorICLAnterior === 0) {
+                    return importeAnterior;
+                }
+                const ajuste = (valorICLActual / valorICLAnterior) * importeAnterior;
+                return ajuste;
+            };
+
+            const resultados = contratos.map(contrato => {
+                const fechasTrimestres = generarFechasTrimestres(contrato.inicio_contrato, contrato.finalizacion_contrato, 3);
+                let importeAnterior = contrato.importe;
+
+                return fechasTrimestres.map((trimestre, index) => {
+                    const valorInicio = obtenerValorIPC(trimestre.inicio);
+                    const valorFin = obtenerValorIPC(trimestre.fin);
+
+                    let importeTrimestre = importeAnterior;
+                    if (index > 0) {
+                        importeTrimestre = calcularAjusteICL(importeAnterior, valorInicio, valorFin);
+                        importeAnterior = importeTrimestre;
+                    }
+
+                    // Generación correcta de los meses del trimestre
+                    let fechaInicio = new Date(trimestre.inicio);
+                    const mesesTrimestre = [];
+
+                    while (fechaInicio <= new Date(trimestre.fin)) {
+                        mesesTrimestre.push(fechaInicio.toLocaleString('es-ES', { month: 'long', year: 'numeric' }));
+                        fechaInicio.setMonth(fechaInicio.getMonth() + 1);
+                    }
+
+                    return {
+                        id: contrato.id,
+                        inicio_contrato: contrato.inicio_contrato,
+                        finalizacion_contrato: contrato.finalizacion_contrato,
+                        tipo_incremento: contrato.tipo_incremento,
+                        trimestre: trimestre.trimestre,
+                        trimestre_inicio: trimestre.inicio,
+                        trimestre_fin: trimestre.fin,
+                        valor_inicio: valorInicio,
+                        valor_fin: valorFin,
+                        importe_inicial: contrato.importe,
+                        importe_trimestre: importeTrimestre,
+                        meses_trimestre: mesesTrimestre
+                    };
+                });
+            }).flat();
+
+            console.log('Resultados:', resultados);
+
+            res.json(resultados);
+        });
+    });
+});

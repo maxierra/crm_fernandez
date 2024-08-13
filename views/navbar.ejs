@@ -6,6 +6,7 @@
     <title>Modern Professional Sidebar Navigation</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <style>
+        /* CSS actual permanece igual */
         :root {
             --sidebar-bg: #ffffff;
             --sidebar-hover: #f8f9fa;
@@ -150,8 +151,16 @@
         <ul class="sidebar-nav">
             <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
             <li><a href="/indice-icl"><i class="fas fa-chart-line"></i> Índices ICL</a></li>
-            <li><a href="/contratos"><i class="fas fa-file-contract"></i> Contratos</a></li>
             
+            <!-- Contratos Menu -->
+            <li>
+                <a href="#" class="toggle-btn"><i class="fas fa-file-contract"></i> Contratos</a>
+                <ul class="submenu">
+                    <li><a href="/contratos"><i class="fas fa-file-contract"></i> Contratos</a></li>
+                    <li><a href="/calculos-alquileres"><i class="fas fa-calculator"></i> Cálculos Alquileres</a></li>
+                </ul>
+            </li>
+
             <!-- Alquileres Menu -->
             <li>
                 <a href="#" class="toggle-btn"><i class="fas fa-building"></i> Alquileres</a>
@@ -171,7 +180,17 @@
             </li>
             
             <li><a href="/reportes"><i class="fas fa-chart-pie"></i> Reportes</a></li>
-            <li><a href="/configuracion"><i class="fas fa-cog"></i> Configuración</a></li>
+
+            <!-- Configuración Menu -->
+            <li>
+                <a href="#" class="toggle-btn"><i class="fas fa-cog"></i> Configuración</a>
+                <ul class="submenu">
+                    <li><a href="/configuracion-general"><i class="fas fa-sliders-h"></i> Configuración General</a></li>
+                    <li><a href="/crear-usuario"><i class="fas fa-user-plus"></i> Crear Usuarios</a></li>
+
+                </ul>
+            </li>
+
             <li><a href="/caja-diaria"><i class="fas fa-cash-register"></i> Caja Diaria</a></li>
             <li><a href="/documentacion"><i class="fas fa-file-alt"></i> Documentación</a></li>
             <li><a href="/reclamos"><i class="fas fa-comments"></i> Reclamos</a></li>

@@ -3,8 +3,13 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const db = require('./db/database'); // Importar la base de datos
+const contratosRoutes = require('./routes/contratos');
+const alquileresRoutes = require('./routes/alquileresRoutes');
+const router = express.Router();
 
-const app = express(); // Inicializar la variable app aquí
+
+const app = express();
 
 // Configuración del motor de vistas y la carpeta de vistas
 app.set('view engine', 'ejs');
@@ -17,63 +22,58 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Configuración de middleware para sesiones
+app.use('/contratos', contratosRoutes);
+app.use('/', alquileresRoutes);
+
+// Configuración de la sesión
 app.use(session({
-  secret: 'tu_secreto', // Cambia esto por una cadena secreta única
+  secret: 'tu_secreto_aqui',
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Cambia a true si usas HTTPS
+  saveUninitialized: true
 }));
 
-// Crear o abrir la base de datos
-const db = new sqlite3.Database('./real_estate.db', (err) => {
-  if (err) {
-    console.error('Error al conectar con la base de datos:', err.message);
-  } else {
-    console.log('Conectado a la base de datos SQLite.');
-    createTable();
-  }
-});
+// Importar rutas
+const indicesRoutes = require('./routes/indices');
+const userRoutes = require('./routes/users');
 
-// Crear la tabla si no existe
-const createTable = () => {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS indice_ipc (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha TEXT NOT NULL,
-      valor_ICL REAL NOT NULL
-    )
-  `;
-  db.run(sql, (err) => {
-    if (err) {
-      console.error('Error al crear la tabla:', err.message);
-    } else {
-      console.log('Tabla creada o ya existe.');
-    }
-  });
-};
+// Usar las rutas
+app.use('/', indicesRoutes);
+app.use('/users', userRoutes);
 
-// Middleware para redirigir a la página de login si no está autenticado
-app.use((req, res, next) => {
-  if (req.session.authenticated || req.originalUrl === '/login') {
-    next();
-  } else {
-    res.redirect('/login');
-  }
-});
-
-// Ruta para mostrar la página principal
+// Ruta para redirigir a la página de inicio de sesión
 app.get('/', (req, res) => {
-  if (req.session.authenticated) {
-    res.render('main');
-  } else {
-    res.redirect('/login');
-  }
+  res.redirect('/login');
 });
 
 // Ruta para mostrar la página de login
 app.get('/login', (req, res) => {
-  res.render('login');
+  res.render('login', { error: null });
+});
+
+// Ruta para manejar la solicitud POST del formulario de inicio de sesión
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Consultar la base de datos para verificar si el usuario y la contraseña son válidos
+  db.get('SELECT * FROM users WHERE username = ? AND password = ?', [username, password], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!row) {
+      // Si la autenticación falla, mostrar un mensaje de error en la página de inicio de sesión
+      return res.render('login', { error: 'Usuario o contraseña incorrectos' });
+    }
+
+    // Si la autenticación es exitosa, crear una sesión para el usuario y redirigirlo a la página deseada
+    req.session.user = row;
+    res.redirect('/main');
+  });
+});
+
+// Ruta para mostrar la página principal (main)
+app.get('/main', (req, res) => {
+  res.render('main');
 });
 
 // Ruta para mostrar la página de índice IPC
@@ -81,82 +81,19 @@ app.get('/indice-icl', (req, res) => {
   res.render('indice_icl');
 });
 
-// Ruta para manejar el login
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-
-  // Validación de usuario y contraseña simulados
-  if (username === 'admin' && password === 'admin2024') {
-    req.session.authenticated = true; // Establece la sesión del usuario
-    res.redirect('/');
-  } else {
-    res.render('login', { error: 'Usuario o contraseña incorrectos' });
-  }
+// Ruta para mostrar la página de contratos
+app.get('/contratos', (req, res) => {
+  res.render('contratos'); // Renderiza la vista contratos.ejs
 });
 
-// Ruta para cargar índices
-app.post('/cargar-indices', (req, res) => {
-  const { iclData } = req.body;
-
-  if (!iclData) {
-    return res.status(400).json({ message: 'No se proporcionaron datos.' });
-  }
-
-  const lines = iclData.split('\n').map(line => line.trim()).filter(line => line);
-
-  let insertCount = 0;
-  let errorCount = 0;
-
-  const promises = lines.map(line => {
-    const [fecha, valor] = line.split('\t');
-
-    return new Promise((resolve, reject) => {
-      // Verificar si el índice ya existe
-      const checkSql = 'SELECT COUNT(*) AS count FROM indice_ipc WHERE fecha = ?';
-      db.get(checkSql, [fecha], (err, row) => {
-        if (err) {
-          reject(`Error al verificar el índice: ${err.message}`);
-        } else if (row.count > 0) {
-          resolve(`El índice para la fecha ${fecha} ya existe.`);
-        } else {
-          const insertSql = 'INSERT INTO indice_ipc (fecha, valor_ICL) VALUES (?, ?)';
-          db.run(insertSql, [fecha, parseFloat(valor.replace(',', '.'))], (err) => {
-            if (err) {
-              reject(`Error al insertar el índice: ${err.message}`);
-            } else {
-              resolve('Índice insertado correctamente.');
-            }
-          });
-        }
-      });
-    });
-  });
-
-  Promise.allSettled(promises).then(results => {
-    const messages = results.map(result => result.value).filter(message => message);
-    const hasErrors = results.some(result => result.status === 'rejected');
-
-    if (hasErrors) {
-      res.status(400).json({ message: messages.join('\n') });
-    } else {
-      res.json({ message: messages.join('\n') });
-    }
-  }).catch(err => {
-    res.status(500).json({ message: `Error en el servidor: ${err.message}` });
-  });
+// Definir la ruta directamente en server.js
+app.get('/calculos-alquileres', (req, res) => {
+  res.render('calculos_alquileres');
 });
 
-// Ruta para obtener los índices
-app.get('/indices', (req, res) => {
-  const sql = 'SELECT * FROM indice_ipc ORDER BY fecha';
-
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error('Error al obtener los índices:', err.message);
-      return res.status(500).json({ message: 'Error en el servidor' });
-    }
-    res.json(rows);
-  });
+// Ruta para mostrar la página de creación de usuarios
+app.get('/crear-usuario', (req, res) => {
+  res.render('crear_users');
 });
 
 // Ruta para cerrar sesión
@@ -169,7 +106,155 @@ app.get('/logout', (req, res) => {
   });
 });
 
+app.get('/resumen', (req, res) => {
+  const sqlContratos = `
+    SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe
+    FROM contratos
+  `;
+
+  const sqlIndiceIPC = `
+    SELECT fecha, valor_ICL
+    FROM indice_ipc
+  `;
+
+  db.all(sqlContratos, [], (err, contratos) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener los contratos' });
+    }
+
+    db.all(sqlIndiceIPC, [], (err, indices) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al obtener los valores IPC' });
+      }
+
+      const convertirFecha = (fecha) => {
+        const [ano, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${ano}`;
+      };
+
+      const obtenerValorIPC = (fecha) => {
+        const fechaFormateada = convertirFecha(fecha);
+        const indice = indices.find(indice => indice.fecha === fechaFormateada);
+        return indice ? indice.valor_ICL : 0;
+      };
+      
+      const generarFechasTrimestres = (inicio, fin, tipoIncremento) => {
+        const fechas = [];
+        let fechaInicio = new Date(inicio);
+        const fechaFin = new Date(fin);
+        let trimestreCount = 1;
+      
+        while (fechaInicio <= fechaFin) {
+          let fechaFinTrimestre = new Date(fechaInicio);
+          fechaFinTrimestre.setMonth(fechaFinTrimestre.getMonth() + tipoIncremento);
+          fechaFinTrimestre.setDate(fechaFinTrimestre.getDate() - 1);
+      
+          if (fechaFinTrimestre > fechaFin) {
+            fechaFinTrimestre = fechaFin;
+          }
+      
+          fechas.push({
+            trimestre: `Trimestre ${trimestreCount}`,
+            inicio: fechaInicio.toISOString().split('T')[0],
+            fin: fechaFinTrimestre.toISOString().split('T')[0]
+          });
+      
+          fechaInicio.setMonth(fechaInicio.getMonth() + tipoIncremento);
+          trimestreCount++;
+        }
+      
+        return fechas;
+      };
+      
+      const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
+        if (valorICLAnterior === 0) {
+          return importeAnterior;
+        }
+        const ajuste = (valorICLActual / valorICLAnterior) * importeAnterior;
+        return ajuste;
+      };
+      
+      const resultados = contratos.map(contrato => {
+        const fechasTrimestres = generarFechasTrimestres(contrato.inicio_contrato, contrato.finalizacion_contrato, 3);
+        let importeAnterior = contrato.importe;
+        let valorICLAnterior = obtenerValorIPC(contrato.inicio_contrato);  // Valor ICL al inicio del contrato
+      
+        return fechasTrimestres.map((trimestre, index) => {
+          const valorInicio = obtenerValorIPC(trimestre.inicio);  // Valor al inicio del trimestre
+          const valorFin = obtenerValorIPC(trimestre.fin);  // Valor al final del trimestre
+      
+          // Primer trimestre sin ajuste
+          let importeTrimestre;
+          if (index === 0) {
+            importeTrimestre = contrato.importe;  // Sin ajuste en el primer trimestre
+          } else {
+            importeTrimestre = calcularAjusteICL(importeAnterior, valorICLAnterior, valorInicio);
+          }
+      
+          // Actualizamos valorICLAnterior y importeAnterior para el siguiente trimestre
+          valorICLAnterior = valorInicio;
+          importeAnterior = importeTrimestre;
+      
+          return {
+            id: contrato.id,
+            tipo_incremento: contrato.tipo_incremento,
+            trimestre: trimestre.trimestre,
+            trimestre_inicio: trimestre.inicio,
+            trimestre_fin: trimestre.fin,
+          
+            importe_trimestre: importeTrimestre.toFixed(2),
+           
+          };
+        });
+      }).flat();
+
+      console.log('Resultados:', resultados);
+
+      res.json(resultados);
+    });
+  });
+});
+
+app.post('/update/:id', (req, res) => {
+  const { calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito } = req.body;
+  const { id } = req.params;
+  const sql = `UPDATE contratos SET calle = ?, nro = ?, dto = ?, propietario = ?, inquilino = ?, importe = ?, observaciones = ?, inicio_contrato = ?, duracion_contrato = ?, tipo_incremento = ?, finalizacion_contrato = ?, metodo_pago = ?, monto_deposito = ? WHERE id = ?`;
+  db.run(sql, [calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito, id], function(err) {
+      if (err) {
+          return res.json({ success: false, error: err.message });
+      }
+      res.json({ success: true });
+  });
+});
+
+app.post('/delete/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `DELETE FROM contratos WHERE id = ?`;
+  db.run(sql, [id], function(err) {
+      if (err) {
+          return res.json({ success: false, error: err.message });
+      }
+      res.json({ success: true });
+  });
+});
+
+app.get('/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM contratos WHERE id = ?`;
+  db.get(sql, [id], (err, contrato) => {
+      if (err) {
+          return res.json({ success: false, error: err.message });
+      }
+      res.json(contrato);
+  });
+});
+
+
+
+
+
 // Iniciar el servidor
-app.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

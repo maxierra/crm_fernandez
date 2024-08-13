@@ -1,0 +1,108 @@
+app.get('/resumen', (req, res) => {
+  const sqlContratos = `
+    SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe
+    FROM contratos
+  `;
+
+  const sqlIndiceIPC = `
+    SELECT fecha, valor_ICL
+    FROM indice_ipc
+  `;
+
+  db.all(sqlContratos, [], (err, contratos) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener los contratos' });
+    }
+
+    db.all(sqlIndiceIPC, [], (err, indices) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al obtener los valores IPC' });
+      }
+
+      const convertirFecha = (fecha) => {
+        const [ano, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${ano}`;
+      };
+
+      const obtenerValorIPC = (fecha) => {
+        const fechaFormateada = convertirFecha(fecha);
+        const indice = indices.find(indice => indice.fecha === fechaFormateada);
+        return indice ? indice.valor_ICL : 0;
+      };
+      
+      const generarFechasTrimestres = (inicio, fin, tipoIncremento) => {
+        const fechas = [];
+        let fechaInicio = new Date(inicio);
+        const fechaFin = new Date(fin);
+        let trimestreCount = 1;
+      
+        while (fechaInicio <= fechaFin) {
+          let fechaFinTrimestre = new Date(fechaInicio);
+          fechaFinTrimestre.setMonth(fechaFinTrimestre.getMonth() + tipoIncremento);
+          fechaFinTrimestre.setDate(fechaFinTrimestre.getDate() - 1);
+      
+          if (fechaFinTrimestre > fechaFin) {
+            fechaFinTrimestre = fechaFin;
+          }
+      
+          fechas.push({
+            trimestre: `Trimestre ${trimestreCount}`,
+            inicio: fechaInicio.toISOString().split('T')[0],
+            fin: fechaFinTrimestre.toISOString().split('T')[0]
+          });
+      
+          fechaInicio.setMonth(fechaInicio.getMonth() + tipoIncremento);
+          trimestreCount++;
+        }
+      
+        return fechas;
+      };
+      
+      const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
+        if (valorICLAnterior === 0) {
+          return importeAnterior;
+        }
+        const ajuste = (valorICLActual / valorICLAnterior) * importeAnterior;
+        return ajuste;
+      };
+      
+      const resultados = contratos.map(contrato => {
+        const fechasTrimestres = generarFechasTrimestres(contrato.inicio_contrato, contrato.finalizacion_contrato, 3);
+        let importeAnterior = contrato.importe;
+        let valorICLAnterior = obtenerValorIPC(contrato.inicio_contrato);  // Valor ICL al inicio del contrato
+      
+        return fechasTrimestres.map((trimestre, index) => {
+          const valorInicio = obtenerValorIPC(trimestre.inicio);  // Valor al inicio del trimestre
+          const valorFin = obtenerValorIPC(trimestre.fin);  // Valor al final del trimestre
+      
+          // Primer trimestre sin ajuste
+          let importeTrimestre;
+          if (index === 0) {
+            importeTrimestre = contrato.importe;  // Sin ajuste en el primer trimestre
+          } else {
+            importeTrimestre = calcularAjusteICL(importeAnterior, valorICLAnterior, valorInicio);
+          }
+      
+          // Actualizamos valorICLAnterior y importeAnterior para el siguiente trimestre
+          valorICLAnterior = valorInicio;
+          importeAnterior = importeTrimestre;
+      
+          return {
+            id: contrato.id,
+            tipo_incremento: contrato.tipo_incremento,
+            trimestre: trimestre.trimestre,
+            trimestre_inicio: trimestre.inicio,
+            trimestre_fin: trimestre.fin,
+          
+            importe_trimestre: importeTrimestre.toFixed(2),
+           
+          };
+        });
+      }).flat();
+
+      console.log('Resultados:', resultados);
+
+      res.json(resultados);
+    });
+  });
+});

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Resultados</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #cce5ff;
+            text-align: center;
+        }
+        .contract-row {
+            background-color: #f0f8ff;
+        }
+        .importe-negrita {
+            font-weight: bold;
+            font-size: 1.2em; /* Aumenta el tamaño del importe */
+        }
+        .fecha-trimestre {
+            display: block;
+            color: #555;
+            font-size: 0.8em; /* Reduce el tamaño de la fecha */
+        }
+        /* Estilos para columnas de trimestre */
+        .trimestre-1 { background-color: #f8d7da; }
+        .trimestre-2 { background-color: #f9e2e7; }
+        .trimestre-3 { background-color: #fef7e3; }
+        .trimestre-4 { background-color: #d4edda; }
+        .trimestre-5 { background-color: #d1ecf1; }
+        .trimestre-6 { background-color: #cce5ff; }
+        .trimestre-7 { background-color: #e2e3e5; }
+        .trimestre-8 { background-color: #e9ecef; }
+    </style>
+</head>
+<body>
+
+       <!-- Incluir el navbar -->
+       <%- include('navbar') %>
+    <h1 class="text-center">Tabla de Resultados</h1>
+    <div class="container">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th rowspan="2">Id Contrato</th>
+                    <th rowspan="2">Tipo Incremento</th>
+                    <th colspan="8">Trimestres</th>
+                </tr>
+                <tr>
+                    <th class="trimestre-1">Trimestre 1</th>
+                    <th class="trimestre-2">Trimestre 2</th>
+                    <th class="trimestre-3">Trimestre 3</th>
+                    <th class="trimestre-4">Trimestre 4</th>
+                    <th class="trimestre-5">Trimestre 5</th>
+                    <th class="trimestre-6">Trimestre 6</th>
+                    <th class="trimestre-7">Trimestre 7</th>
+                    <th class="trimestre-8">Trimestre 8</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-resultados">
+                <!-- Los datos se mostrarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $.ajax({
+            type: 'GET',
+            url: '/resumen',
+            success: function(data) {
+                var resultados = data;
+                var contratos = {};
+
+                // Organiza los datos por contrato
+                resultados.forEach(function(resultado) {
+                    var idContrato = resultado.id;
+                    var tipoIncremento = resultado.tipo_incremento; // Agrega el tipo de incremento
+                    var trimestre = parseInt(resultado.trimestre.split(' ')[1]);
+
+                    if (!contratos[idContrato]) {
+                        contratos[idContrato] = {
+                            tipoIncremento: tipoIncremento, // Almacena el tipo de incremento
+                            trimestres: ['', '', '', '', '', '', '', ''] // 8 espacios para los 8 trimestres
+                        };
+                    }
+
+                    // Formatea el importe en el formato adecuado
+                    var importeFormateado = parseFloat(resultado.importe_trimestre).toLocaleString('es-AR', {
+                        style: 'currency',
+                        currency: 'ARS'
+                    });
+
+                    var detalleTrimestre = `
+                        <span class="importe-negrita">${importeFormateado}</span>
+                        <span class="fecha-trimestre">(${resultado.trimestre_inicio} - ${resultado.trimestre_fin})</span>
+                    `;
+
+                    if (trimestre >= 1 && trimestre <= 8) {
+                        contratos[idContrato].trimestres[trimestre - 1] = detalleTrimestre;
+                    }
+                });
+
+                // Añade los contratos a la tabla
+                for (var idContrato in contratos) {
+                    var fila = `
+                        <tr class="contract-row">
+                            <td>${idContrato}</td>
+                            <td>${contratos[idContrato].tipoIncremento}</td>
+                            <td class="trimestre-1">${contratos[idContrato].trimestres[0]}</td>
+                            <td class="trimestre-2">${contratos[idContrato].trimestres[1]}</td>
+                            <td class="trimestre-3">${contratos[idContrato].trimestres[2]}</td>
+                            <td class="trimestre-4">${contratos[idContrato].trimestres[3]}</td>
+                            <td class="trimestre-5">${contratos[idContrato].trimestres[4]}</td>
+                            <td class="trimestre-6">${contratos[idContrato].trimestres[5]}</td>
+                            <td class="trimestre-7">${contratos[idContrato].trimestres[6]}</td>
+                            <td class="trimestre-8">${contratos[idContrato].trimestres[7]}</td>
+                        </tr>
+                    `;
+                    $('#tabla-resultados').append(fila);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error al obtener los datos:', error);
+            }
+        });
+    </script>
+</body>
+</html>
