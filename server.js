@@ -106,6 +106,8 @@ app.get('/logout', (req, res) => {
   });
 });
 
+
+
 app.get('/resumen', (req, res) => {
   const sqlContratos = `
     SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe
@@ -128,44 +130,52 @@ app.get('/resumen', (req, res) => {
       }
 
       const convertirFecha = (fecha) => {
+        if (!fecha || typeof fecha !== 'string') {
+          console.error('Fecha no válida:', fecha);
+          return null; // o un valor por defecto
+        }
         const [ano, mes, dia] = fecha.split('-');
         return `${dia}/${mes}/${ano}`;
       };
 
       const obtenerValorIPC = (fecha) => {
         const fechaFormateada = convertirFecha(fecha);
+        if (!fechaFormateada) {
+          console.error('Error al formatear la fecha:', fecha);
+          return 0; // manejar el error según sea necesario
+        }
         const indice = indices.find(indice => indice.fecha === fechaFormateada);
         return indice ? indice.valor_ICL : 0;
       };
-      
-      const generarFechasTrimestres = (inicio, fin, tipoIncremento) => {
+
+      const generarFechasPeriodos = (inicio, fin, tipoIncremento) => {
         const fechas = [];
         let fechaInicio = new Date(inicio);
         const fechaFin = new Date(fin);
-        let trimestreCount = 1;
-      
+        let periodoCount = 1;
+
         while (fechaInicio <= fechaFin) {
-          let fechaFinTrimestre = new Date(fechaInicio);
-          fechaFinTrimestre.setMonth(fechaFinTrimestre.getMonth() + tipoIncremento);
-          fechaFinTrimestre.setDate(fechaFinTrimestre.getDate() - 1);
-      
-          if (fechaFinTrimestre > fechaFin) {
-            fechaFinTrimestre = fechaFin;
+          let fechaFinPeriodo = new Date(fechaInicio);
+          fechaFinPeriodo.setMonth(fechaFinPeriodo.getMonth() + tipoIncremento);
+          fechaFinPeriodo.setDate(fechaFinPeriodo.getDate() - 1);
+
+          if (fechaFinPeriodo > fechaFin) {
+            fechaFinPeriodo = fechaFin;
           }
-      
+
           fechas.push({
-            trimestre: `Trimestre ${trimestreCount}`,
+            periodo: tipoIncremento === 3 ? `Trimestre ${periodoCount}` : `Cuatrimestre ${periodoCount}`,
             inicio: fechaInicio.toISOString().split('T')[0],
-            fin: fechaFinTrimestre.toISOString().split('T')[0]
+            fin: fechaFinPeriodo.toISOString().split('T')[0]
           });
-      
+
           fechaInicio.setMonth(fechaInicio.getMonth() + tipoIncremento);
-          trimestreCount++;
+          periodoCount++;
         }
-      
+
         return fechas;
       };
-      
+
       const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
         if (valorICLAnterior === 0) {
           return importeAnterior;
@@ -173,37 +183,34 @@ app.get('/resumen', (req, res) => {
         const ajuste = (valorICLActual / valorICLAnterior) * importeAnterior;
         return ajuste;
       };
-      
+
       const resultados = contratos.map(contrato => {
-        const fechasTrimestres = generarFechasTrimestres(contrato.inicio_contrato, contrato.finalizacion_contrato, 3);
+        const tipoIncremento = contrato.tipo_incremento === 'trimestral' ? 3 : 4;
+        const fechasPeriodos = generarFechasPeriodos(contrato.inicio_contrato, contrato.finalizacion_contrato, tipoIncremento);
         let importeAnterior = contrato.importe;
-        let valorICLAnterior = obtenerValorIPC(contrato.inicio_contrato);  // Valor ICL al inicio del contrato
-      
-        return fechasTrimestres.map((trimestre, index) => {
-          const valorInicio = obtenerValorIPC(trimestre.inicio);  // Valor al inicio del trimestre
-          const valorFin = obtenerValorIPC(trimestre.fin);  // Valor al final del trimestre
-      
-          // Primer trimestre sin ajuste
-          let importeTrimestre;
+        let valorICLAnterior = obtenerValorIPC(contrato.inicio_contrato);
+
+        return fechasPeriodos.map((periodo, index) => {
+          const valorInicio = obtenerValorIPC(periodo.inicio);
+          const valorFin = obtenerValorIPC(periodo.fin);
+
+          let importePeriodo;
           if (index === 0) {
-            importeTrimestre = contrato.importe;  // Sin ajuste en el primer trimestre
+            importePeriodo = contrato.importe;
           } else {
-            importeTrimestre = calcularAjusteICL(importeAnterior, valorICLAnterior, valorInicio);
+            importePeriodo = calcularAjusteICL(importeAnterior, valorICLAnterior, valorInicio);
           }
-      
-          // Actualizamos valorICLAnterior y importeAnterior para el siguiente trimestre
+
           valorICLAnterior = valorInicio;
-          importeAnterior = importeTrimestre;
-      
+          importeAnterior = importePeriodo;
+
           return {
             id: contrato.id,
             tipo_incremento: contrato.tipo_incremento,
-            trimestre: trimestre.trimestre,
-            trimestre_inicio: trimestre.inicio,
-            trimestre_fin: trimestre.fin,
-          
-            importe_trimestre: importeTrimestre.toFixed(2),
-           
+            periodo: periodo.periodo,
+            periodo_inicio: periodo.inicio,
+            periodo_fin: periodo.fin,
+            importe_periodo: importePeriodo.toFixed(2),
           };
         });
       }).flat();
@@ -214,6 +221,8 @@ app.get('/resumen', (req, res) => {
     });
   });
 });
+
+
 
 app.post('/update/:id', (req, res) => {
   const { calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito } = req.body;

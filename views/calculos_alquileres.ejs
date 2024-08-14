@@ -50,8 +50,8 @@
 </head>
 <body>
 
-       <!-- Incluir el navbar -->
-       <%- include('navbar') %>
+    <!-- Incluir el navbar -->
+    <%- include('navbar') %>
     <h1 class="text-center">Tabla de Resultados</h1>
     <div class="container">
         <table class="table table-bordered">
@@ -59,17 +59,17 @@
                 <tr>
                     <th rowspan="2">Id Contrato</th>
                     <th rowspan="2">Tipo Incremento</th>
-                    <th colspan="8">Trimestres</th>
+                    <th colspan="8">Períodos</th>
                 </tr>
                 <tr>
-                    <th class="trimestre-1">Trimestre 1</th>
-                    <th class="trimestre-2">Trimestre 2</th>
-                    <th class="trimestre-3">Trimestre 3</th>
-                    <th class="trimestre-4">Trimestre 4</th>
-                    <th class="trimestre-5">Trimestre 5</th>
-                    <th class="trimestre-6">Trimestre 6</th>
-                    <th class="trimestre-7">Trimestre 7</th>
-                    <th class="trimestre-8">Trimestre 8</th>
+                    <th class="trimestre-1">Periodo 1</th>
+                    <th class="trimestre-2">Periodo 2</th>
+                    <th class="trimestre-3">Periodo 3</th>
+                    <th class="trimestre-4">Periodo 4</th>
+                    <th class="trimestre-5">Periodo 5</th>
+                    <th class="trimestre-6">Periodo 6</th>
+                    <th class="trimestre-7">Periodo 7</th>
+                    <th class="trimestre-8">Periodo 8</th>
                 </tr>
             </thead>
             <tbody id="tabla-resultados">
@@ -90,29 +90,34 @@
                 // Organiza los datos por contrato
                 resultados.forEach(function(resultado) {
                     var idContrato = resultado.id;
-                    var tipoIncremento = resultado.tipo_incremento; // Agrega el tipo de incremento
-                    var trimestre = parseInt(resultado.trimestre.split(' ')[1]);
+                    var tipoIncremento = resultado.tipo_incremento;
 
-                    if (!contratos[idContrato]) {
-                        contratos[idContrato] = {
-                            tipoIncremento: tipoIncremento, // Almacena el tipo de incremento
-                            trimestres: ['', '', '', '', '', '', '', ''] // 8 espacios para los 8 trimestres
-                        };
-                    }
+                    // Extrae el número del periodo (e.g., 'Cuatrimestre 3')
+                    var periodoMatch = resultado.periodo.match(/(\d+)/);
+                    var periodoNumero = periodoMatch ? parseInt(periodoMatch[1], 10) : null;
 
-                    // Formatea el importe en el formato adecuado
-                    var importeFormateado = parseFloat(resultado.importe_trimestre).toLocaleString('es-AR', {
-                        style: 'currency',
-                        currency: 'ARS'
-                    });
+                    if (periodoNumero !== null && periodoNumero >= 1 && periodoNumero <= 8) {
+                        if (!contratos[idContrato]) {
+                            contratos[idContrato] = {
+                                tipoIncremento: tipoIncremento,
+                                trimestres: ['', '', '', '', '', '', '', ''] // 8 espacios para los 8 trimestres/cuatrimestres
+                            };
+                        }
 
-                    var detalleTrimestre = `
-                        <span class="importe-negrita">${importeFormateado}</span>
-                        <span class="fecha-trimestre">(${resultado.trimestre_inicio} - ${resultado.trimestre_fin})</span>
-                    `;
+                        // Formatea el importe en el formato adecuado
+                        var importeFormateado = parseFloat(resultado.importe_periodo).toLocaleString('es-AR', {
+                            style: 'currency',
+                            currency: 'ARS'
+                        });
 
-                    if (trimestre >= 1 && trimestre <= 8) {
-                        contratos[idContrato].trimestres[trimestre - 1] = detalleTrimestre;
+                        var detallePeriodo = `
+                            <span class="importe-negrita">${importeFormateado}</span>
+                            <span class="fecha-trimestre">(${resultado.periodo_inicio} - ${resultado.periodo_fin})</span>
+                        `;
+
+                        contratos[idContrato].trimestres[periodoNumero - 1] = detallePeriodo;
+                    } else {
+                        console.error('El periodo es inválido o está indefinido:', resultado.periodo);
                     }
                 });
 
