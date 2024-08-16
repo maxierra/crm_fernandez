@@ -13,24 +13,23 @@ router.get('/', (req, res) => {
     });
 });
 
-// Ruta para agregar un contrato
 router.post('/add', (req, res) => {
-    const { 
-        calle, nro, dto, propietario, inquilino, importe, observaciones, 
-        inicio_contrato, duracion_contrato, tipo_incremento, 
-        finalizacion_contrato, metodo_pago, monto_deposito 
+    const {
+        calle, nro, dto, propietario, inquilino, importe, observaciones,
+        inicio_contrato, duracion_contrato, tipo_incremento,
+        finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision
     } = req.body;
 
     const sql = `INSERT INTO contratos (
-                    calle, nro, dto, propietario, inquilino, importe, observaciones, 
-                    inicio_contrato, duracion_contrato, tipo_incremento, 
-                    finalizacion_contrato, metodo_pago, monto_deposito
-                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    calle, nro, dto, propietario, inquilino, importe, observaciones,
+                    inicio_contrato, duracion_contrato, tipo_incremento,
+                    finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision
+                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     db.run(sql, [
-        calle, nro, dto, propietario, inquilino, importe, observaciones, 
-        inicio_contrato, duracion_contrato, tipo_incremento, 
-        finalizacion_contrato, metodo_pago, monto_deposito
+        calle, nro, dto, propietario, inquilino, importe, observaciones,
+        inicio_contrato, duracion_contrato, tipo_incremento,
+        finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision
     ], function(err) {
         if (err) {
             console.error('Error al insertar el contrato:', err.message);
@@ -39,9 +38,9 @@ router.post('/add', (req, res) => {
 
         const newContrato = {
             id: this.lastID,
-            calle, nro, dto, propietario, inquilino, importe, observaciones, 
-            inicio_contrato, duracion_contrato, tipo_incremento, 
-            finalizacion_contrato, metodo_pago, monto_deposito
+            calle, nro, dto, propietario, inquilino, importe, observaciones,
+            inicio_contrato, duracion_contrato, tipo_incremento,
+            finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision
         };
 
         res.json({ success: true, contrato: newContrato });
@@ -49,18 +48,19 @@ router.post('/add', (req, res) => {
 });
 
 
-router.post('/update/:id', (req, res) => {
-  const { calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito } = req.body;
-  const { id } = req.params;
-  const sql = `UPDATE contratos SET calle = ?, nro = ?, dto = ?, propietario = ?, inquilino = ?, importe = ?, observaciones = ?, inicio_contrato = ?, duracion_contrato = ?, tipo_incremento = ?, finalizacion_contrato = ?, metodo_pago = ?, monto_deposito = ? WHERE id = ?`;
-  db.run(sql, [calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito, id], function(err) {
-      if (err) {
-          return res.json({ success: false, error: err.message });
-      }
-      res.json({ success: true });
-  });
-});
 
+router.post('/update/:id', (req, res) => {
+    const { calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision } = req.body;
+    const { id } = req.params;
+    const sql = `UPDATE contratos SET calle = ?, nro = ?, dto = ?, propietario = ?, inquilino = ?, importe = ?, observaciones = ?, inicio_contrato = ?, duracion_contrato = ?, tipo_incremento = ?, finalizacion_contrato = ?, metodo_pago = ?, monto_deposito = ?, cbu = ?, comision = ? WHERE id = ?`;
+    db.run(sql, [calle, nro, dto, propietario, inquilino, importe, observaciones, inicio_contrato, duracion_contrato, tipo_incremento, finalizacion_contrato, metodo_pago, monto_deposito, cbu, comision, id], function(err) {
+        if (err) {
+            return res.json({ success: false, error: err.message });
+        }
+        res.json({ success: true });
+    });
+  });
+  
 router.post('/delete/:id', (req, res) => {
   const { id } = req.params;
   const sql = `DELETE FROM contratos WHERE id = ?`;

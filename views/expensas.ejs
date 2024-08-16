@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Expensas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('navbar') %>
+    <!-- Incluye el navbar reutilizable -->
+
+<div class="container mt-5">
+    <h2 class="mb-4">Cargar Expensas</h2>
+    
+    <!-- Formulario de búsqueda -->
+    <form id="buscarInquilinoForm" class="row g-3">
+        <div class="col-md-8">
+            <input type="text" id="buscar" class="form-control" placeholder="Buscar por ID, nombre o calle">
+        </div>
+        <div class="col-md-4">
+            <button type="button" class="btn btn-primary w-100" onclick="buscarInquilino()">Buscar</button>
+        </div>
+    </form>
+    
+    <!-- Formulario de carga de expensas -->
+    <form id="cargarExpensasForm" class="mt-4 row g-3">
+        <div class="col-md-4">
+            <label for="calle" class="form-label">Calle</label>
+            <input type="text" id="calle" class="form-control" disabled>
+        </div>
+        <div class="col-md-2">
+            <label for="numero" class="form-label">Número</label>
+            <input type="text" id="numero" class="form-control" disabled>
+        </div>
+        <div class="col-md-6">
+            <label for="nombrePropietario" class="form-label">Nombre del propietario</label>
+            <input type="text" id="nombrePropietario" class="form-control" disabled>
+        </div>
+        <div class="col-md-6">
+            <label for="expensasComunes" class="form-label">Expensas Comunes</label>
+            <input type="number" id="expensasComunes" class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="expensasExtraordinarias" class="form-label">Expensas Extraordinarias</label>
+            <input type="number" id="expensasExtraordinarias" class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label for="mes" class="form-label">Mes</label>
+            <select id="mes" class="form-select">
+                <option value="01">Enero</option>
+                <option value="02">Febrero</option>
+                <option value="03">Marzo</option>
+                <option value="04">Abril</option>
+                <option value="05">Mayo</option>
+                <option value="06">Junio</option>
+                <option value="07">Julio</option>
+                <option value="08">Agosto</option>
+                <option value="09">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="anio" class="form-label">Año</label>
+            <select id="anio" class="form-select">
+                <!-- Se llenará dinámicamente con los años -->
+            </select>
+        </div>
+        <div class="col-md-12">
+            <button type="button" class="btn btn-success w-100" onclick="guardarExpensas()">Guardar</button>
+        </div>
+    </form>
+
+    <!-- Modal de éxito -->
+    <div id="modalSuccess" class="alert alert-success mt-4" style="display:none;">Expensas guardadas con éxito</div>
+
+    <!-- Tabla de expensas -->
+    <h3 class="mt-5">Expensas Cargadas</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped mt-3" id="tablaExpensas">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Calle</th>
+                    <th>Número</th>
+                    <th>Propietario</th>
+                    <th>Comunes</th>
+                    <th>Extraordinarias</th>
+                    <th>Periodo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenará la tabla con los datos -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Llenar automáticamente el selector de años con opciones
+    const currentYear = new Date().getFullYear();
+    const selectAnio = document.getElementById('anio');
+    for (let i = currentYear; i >= currentYear - 10; i--) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.text = i;
+        selectAnio.appendChild(option);
+    }
+
+    function buscarInquilino() {
+        const search = document.getElementById('buscar').value;
+        fetch(`/buscar-inquilino?search=${search}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('calle').value = data.calle;
+            document.getElementById('numero').value = data.numero;
+            document.getElementById('nombrePropietario').value = data.nombre;
+        });
+    }
+
+    function guardarExpensas() {
+        const expensasComunes = document.getElementById('expensasComunes').value;
+        const expensasExtraordinarias = document.getElementById('expensasExtraordinarias').value;
+        const mes = document.getElementById('mes').value;
+        const anio = document.getElementById('anio').value;
+        const periodo = `${mes}/${anio}`;
+
+        fetch('/guardar-expensas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ expensasComunes, expensasExtraordinarias, periodo })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('modalSuccess').style.display = 'block';
+                // Actualizar la tabla de expensas
+                obtenerExpensas();
+            }
+        });
+    }
+
+    function obtenerExpensas() {
+        fetch('/obtener-expensas')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('#tablaExpensas tbody');
+            tbody.innerHTML = '';
+            data.forEach(expensa => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expensa.id}</td>
+                    <td>${expensa.calle}</td>
+                    <td>${expensa.numero}</td>
+                    <td>${expensa.nombre}</td>
+                    <td>${expensa.expensas_comunes}</td>
+                    <td>${expensa.expensas_extraordinarias}</td>
+                    <td>${expensa.periodo}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editarExpensas(${expensa.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarExpensas(${expensa.id})">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+    }
+
+    function eliminarExpensas(id) {
+        fetch(`/eliminar-expensas/${id}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                obtenerExpensas();
+            }
+        });
+    }
+
+    function editarExpensas(id) {
+        // Similar al guardarExpensas, pero se actualiza el registro existente
+    }
+
+    // Inicialmente cargamos todas las expensas
+    obtenerExpensas();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

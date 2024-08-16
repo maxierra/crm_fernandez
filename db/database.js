@@ -55,7 +55,7 @@ const createUsersTable = () => {
   });
 };
 
-// Crear la tabla contratos si no existe con las nuevas columnas
+// Crear la tabla contratos si no existe
 const createContratosTable = () => {
   const sql = `
     CREATE TABLE IF NOT EXISTS contratos (
@@ -80,8 +80,40 @@ const createContratosTable = () => {
       console.error('Error al crear la tabla contratos:', err.message);
     } else {
       console.log('Tabla contratos creada o ya existe.');
+      alterContratosTable(); // Ejecuta alteraciones solo si la tabla ya existe
     }
   });
 };
+
+// Agregar nuevas columnas si no existen
+const alterContratosTable = () => {
+  db.run(`ALTER TABLE contratos ADD COLUMN cbu TEXT`, (err) => {
+    if (err) {
+      if (err.message.includes("duplicate column name")) {
+        console.log('La columna cbu ya existe.');
+      } else {
+        console.error('Error al agregar la columna cbu:', err.message);
+      }
+    } else {
+      console.log('Columna cbu agregada a la tabla contratos.');
+    }
+  });
+
+  db.run(`ALTER TABLE contratos ADD COLUMN comision REAL`, (err) => {
+    if (err) {
+      if (err.message.includes("duplicate column name")) {
+        console.log('La columna comision ya existe.');
+      } else {
+        console.error('Error al agregar la columna comision:', err.message);
+      }
+    } else {
+      console.log('Columna comision agregada a la tabla contratos.');
+    }
+  });
+};
+
+// Ejecutar la creación de la tabla
+createContratosTable();
+
 
 module.exports = db;
