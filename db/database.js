@@ -112,8 +112,112 @@ const alterContratosTable = () => {
   });
 };
 
-// Ejecutar la creación de la tabla
+// Ejecutar la creación de la tabla contratos
 createContratosTable();
+
+// Crear la tabla de expensas si no existe
+const createExpensasTable = () => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS expensas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      calle TEXT NOT NULL,
+      numero TEXT NOT NULL,
+      nombre_propietario TEXT NOT NULL,
+      expensas_comunes REAL NOT NULL,
+      expensas_extraordinarias REAL NOT NULL,
+      periodo TEXT NOT NULL
+    )
+  `;
+  db.run(sql, (err) => {
+    if (err) {
+      console.error('Error al crear la tabla expensas:', err.message);
+    } else {
+      console.log('Tabla expensas creada o ya existe.');
+    }
+  });
+};
+
+// Llama a la función para crear la tabla de expensas
+createExpensasTable();
+
+// Añadir la columna 'estado' a la tabla 'expensas' si no existe
+const addEstadoColumn = () => {
+  const sql = `
+    ALTER TABLE expensas
+    ADD COLUMN estado TEXT NOT NULL DEFAULT 'Pendiente'
+  `;
+  db.run(sql, (err) => {
+    if (err) {
+      if (err.message.includes("duplicate column name")) {
+        console.log("La columna 'estado' ya existe.");
+      } else {
+        console.error("Error al añadir la columna 'estado':", err.message);
+      }
+    } else {
+      console.log("Columna 'estado' añadida a la tabla 'expensas'.");
+    }
+  });
+};
+
+// Ejecutar la función para añadir la columna 'estado' si es necesario
+addEstadoColumn();
+
+
+// Crear la tabla de pagos ABL si no existe
+const createPagosABLTable = () => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS pagos_abl (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      calle TEXT NOT NULL,
+      numero TEXT NOT NULL,
+      nombre TEXT NOT NULL,
+      monto_abl REAL NOT NULL,
+      periodo TEXT NOT NULL
+    )
+  `;
+  db.run(sql, (err) => {
+    if (err) {
+      console.error('Error al crear la tabla pagos_abl:', err.message);
+    } else {
+      console.log('Tabla pagos_abl creada o ya existe.');
+    }
+  });
+};
+
+// Llamar a la función para crear la tabla
+createPagosABLTable();
+
+// Crear la tabla de alquileres_calculos si no existe
+const createAlquileresCalculosTable = () => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS alquileres_calculos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_contrato INTEGER,
+      tipo_incremento TEXT,
+      periodo TEXT,
+      periodo_inicio DATE,
+      periodo_fin DATE,
+      importe_periodo DECIMAL(10, 2),
+      icl_inicio DECIMAL(10, 2),
+      icl_fin DECIMAL(10, 2),
+      nombre_inquilino TEXT,
+      calle TEXT,
+      numero_dto TEXT,
+      FOREIGN KEY (id_contrato) REFERENCES contratos(id)
+    )
+  `;
+  
+  db.run(sql, (err) => {
+    if (err) {
+      console.error('Error al crear la tabla alquileres_calculos:', err.message);
+    } else {
+      console.log('Tabla alquileres_calculos creada o ya existe.');
+    }
+  });
+};
+
+// Llama a la función para crear la tabla
+createAlquileresCalculosTable();
 
 
 module.exports = db;
