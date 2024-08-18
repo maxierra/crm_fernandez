@@ -121,9 +121,10 @@ app.get('/cargar-pago-abl', (req, res) => {
   res.render('abl'); // Renderiza el archivo 'abl.ejs' en la carpeta 'views'
 });
 
-app.get('/cobro-alquiler', (req, res) => {
-  res.render('cobro_alquiler'); // Renderiza el archivo 'cobro_alquiler.ejs' en la carpeta 'views'
+app.get('/cobro-alquileres', (req, res) => {
+  res.render('cobro-alquileres');
 });
+
 
 app.get('/reclamos', (req, res) => {
   res.render('reclamos'); // Renderiza el archivo 'reclamos.ejs'
@@ -305,6 +306,206 @@ app.get('/resumen', (req, res) => {
     });
   });
 });
+
+app.get('/api/cobro-alquileres', (req, res) => {
+  const nombreInquilino = req.query.nombre || ''; // Obtener el nombre del inquilino desde la query string
+  const sqlContratos = `
+    SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe, inquilino, propietario, calle, nro, dto
+    FROM contratos
+    WHERE inquilino LIKE ?
+  `;
+  
+  const sqlIndiceIPC = `
+    SELECT fecha, valor_ICL
+    FROM indice_ipc
+  `;
+  
+  db.all(sqlContratos, [`%${nombreInquilino}%`], (err, contratos) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener los contratos' });
+    }
+  
+    db.all(sqlIndiceIPC, [], (err, indices) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error al obtener los valores IPC' });
+      }
+
+      const obtenerExpensas = (propietario) => {
+        return new Promise((resolve, reject) => {
+          const sqlExpensas = `
+            SELECT expensas_comunes, expensas_extraordinarias
+            FROM expensas
+            WHERE nombre_propietario = ?
+          `;
+          
+          db.get(sqlExpensas, [propietario], (err, expensas) => {
+            if (err) {
+              return reject('Error al obtener las expensas');
+            }
+      
+            console.log('Expensas obtenidas:', expensas);
+      
+            resolve(expensas || { expensas_comunes: 0, expensas_extraordinarias: 0 });
+          });
+        });
+      };
+      
+  
+      const convertirFecha = (fecha) => {
+        if (!fecha || typeof fecha !== 'string') {
+          console.error('Fecha no válida:', fecha);
+          return null;
+        }
+        const [ano, mes, dia] = fecha.split('-');
+        return `${dia}/${mes}/${ano}`;
+      };
+  
+      const obtenerValorIPC = (fecha) => {
+        const fechaFormateada = convertirFecha(fecha);
+        if (!fechaFormateada) {
+          console.error('Error al formatear la fecha:', fecha);
+          return 0;
+        }
+        const indice = indices.find(indice => indice.fecha === fechaFormateada);
+        return indice ? indice.valor_ICL : 0;
+      };
+  
+      const generarFechasPeriodos = (inicio, fin, tipoIncremento) => {
+        const fechas = [];
+        let fechaInicio = new Date(inicio);
+        const fechaFin = new Date(fin);
+        let periodoCount = 1;
+  
+        while (fechaInicio <= fechaFin) {
+          let fechaFinPeriodo = new Date(fechaInicio);
+          fechaFinPeriodo.setMonth(fechaFinPeriodo.getMonth() + tipoIncremento);
+          fechaFinPeriodo.setDate(fechaFinPeriodo.getDate() - 1);
+  
+          if (fechaFinPeriodo > fechaFin) {
+            fechaFinPeriodo = fechaFin;
+          }
+  
+          fechas.push({
+            periodo: tipoIncremento === 3 ? `Trimestre ${periodoCount}` : `Cuatrimestre ${periodoCount}`,
+            inicio: fechaInicio.toISOString().split('T')[0],
+            fin: fechaFinPeriodo.toISOString().split('T')[0]
+          });
+  
+          fechaInicio.setMonth(fechaInicio.getMonth() + tipoIncremento);
+          periodoCount++;
+        }
+  
+        return fechas;
+      };
+
+      const generarFechasAnuales = (inicio, fin) => {
+        const fechas = [];
+        let fechaInicio = new Date(inicio);
+        const fechaFin = new Date(fin);
+        let añoCount = 1;
+      
+        while (fechaInicio <= fechaFin) {
+          let fechaFinAño = new Date(fechaInicio);
+          fechaFinAño.setFullYear(fechaInicio.getFullYear() + 1);
+          fechaFinAño.setDate(fechaInicio.getDate() - 1); // Ajusta el día final al día anterior del mismo mes del siguiente año
+      
+          if (fechaFinAño > fechaFin) {
+            fechaFinAño = fechaFin;
+          }
+      
+          fechas.push({
+            año: `Año ${añoCount}`,
+            inicio: fechaInicio.toISOString().split('T')[0],
+            fin: fechaFinAño.toISOString().split('T')[0]
+          });
+      
+          fechaInicio.setFullYear(fechaInicio.getFullYear() + 1);
+          añoCount++;
+        }
+      
+        return fechas;
+      };
+      const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
+        if (valorICLAnterior === 0) {
+          return importeAnterior;
+        }
+        const ajuste = (valorICLActual / valorICLAnterior) * importeAnterior;
+        return ajuste;
+      };
+  
+      const obtenerPeriodoActual = (fechas) => {
+        const hoy = new Date();
+        return fechas.find(fecha => {
+          const inicio = new Date(fecha.inicio);
+          const fin = new Date(fecha.fin);
+          return hoy >= inicio && hoy <= fin;
+        });
+      };
+
+      const resultadosPromises = contratos.map(async contrato => {
+        const tipoIncremento = contrato.tipo_incremento === 'trimestral' ? 3 : 4;
+        let fechas;
+  
+        if (contrato.tipo_incremento === 'anual') {
+          fechas = generarFechasAnuales(contrato.inicio_contrato, contrato.finalizacion_contrato);
+        } else {
+          fechas = generarFechasPeriodos(contrato.inicio_contrato, contrato.finalizacion_contrato, tipoIncremento);
+        }
+
+        const periodoActual = obtenerPeriodoActual(fechas);
+  
+        if (periodoActual) {
+          let importeAnterior = contrato.importe;
+          let valorICLAnterior = obtenerValorIPC(contrato.inicio_contrato);
+          const valorInicio = obtenerValorIPC(periodoActual.inicio);
+          const valorFin = obtenerValorIPC(periodoActual.fin);
+  
+          let importePeriodo = calcularAjusteICL(importeAnterior, valorICLAnterior, valorInicio);
+
+          // Obtener expensas del propietario
+          const expensas = await obtenerExpensas(contrato.propietario);
+
+          // Calcular el total a cobrar
+          const totalACobrar = importePeriodo + expensas.expensas_comunes + expensas.expensas_extraordinarias;
+  
+          return {
+            
+            inquilino: contrato.inquilino,
+            propietario: contrato.propietario,
+            calle: contrato.calle,
+            nro: contrato.nro,
+            dto: contrato.dto,
+            
+          
+            periodo_fin: periodoActual.fin,
+            importe_periodo: importePeriodo.toFixed(2),
+            icl_inicio: valorInicio,
+            icl_fin: valorFin,
+            expensas_comunes: expensas.expensas_comunes,
+            expensas_extraordinarias: expensas.expensas_extraordinarias,
+            total_a_cobrar: totalACobrar.toFixed(2)
+          };
+        }
+  
+        return null;
+      });
+
+      Promise.all(resultadosPromises)
+        .then(resultados => {
+          res.json(resultados.filter(result => result !== null));
+        })
+        .catch(error => {
+          console.error(error);
+          res.status(500).json({ error: 'Error al procesar los datos' });
+        });
+    });
+  });
+});
+
+
+
+
+
 
 
 
