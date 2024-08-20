@@ -9,7 +9,7 @@
         body {
             background-color: #f8f9fa;
         }
-       
+
         .custom-header {
             background: linear-gradient(to right, #990000, #330000);
             color: #fff;
@@ -17,8 +17,86 @@
             border-radius: 10px;
             margin-bottom: 20px;
         }
+
         .table tbody tr:hover {
             background-color: #f8f9fa;
+        }
+
+        /* Estilos para el total a cobrar */
+        .total-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #000;
+            border-radius: 10px;
+            text-align: center; /* Centramos el texto */
+        }
+
+        .total-container span {
+            color: #0f0;
+            font-size: 28px; /* Aumentamos el tamaño de la fuente */
+            font-weight: bold;
+        }
+
+        /* Estilos para el select de usuarios */
+        .user-select-container {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-select-container .user-select {
+            flex: 1;
+            text-align: left; /* Alineamos a la izquierda */
+        }
+
+        .user-select-container select {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Estilos para el toggle switch */
+        .payment-methods {
+            flex: 1;
+            text-align: right; /* Alineamos a la derecha */
+        }
+
+        .payment-methods .form-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-methods .form-check input {
+            width: 50px;
+            height: 30px;
+        }
+
+        .payment-methods .form-check .form-check-label {
+            margin-left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .form-check-input:checked {
+            background-color: green;
+            border-color: green;
+        }
+
+        .form-check-input:not(:checked) {
+            background-color: red;
+            border-color: red;
+        }
+
+        /* Botón grande para realizar cobro */
+        .submit-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .submit-container button {
+            padding: 15px 30px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -28,6 +106,7 @@
         <%- include('navbar') %>
     </nav>
     <div class="container mt-5">
+        <!-- Encabezado personalizado -->
         <div class="custom-header">
             <h1 class="text-center mb-0">Cobro de Alquileres</h1>
         </div>
@@ -53,13 +132,42 @@
                         <th>Importe del Periodo</th>
                         <th>Expensas Comunes</th>
                         <th>Expensas Extraordinarias</th>
-                        <th>Total a Cobrar</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
                     <!-- Las filas se agregarán aquí dinámicamente -->
                 </tbody>
             </table>
+
+            <!-- Contenedor para el total a cobrar -->
+            <div id="total-container" class="total-container">
+                <span>Total a Cobrar: $<span id="total-amount">0.00</span></span>
+            </div>
+
+            <!-- Contenedor para seleccionar el usuario y métodos de pago -->
+            <div id="user-select-container" class="user-select-container">
+                <div class="user-select">
+                    <label for="user-select">Cobro realizado por:</label>
+                    <select id="user-select">
+                        <!-- Opciones se llenarán dinámicamente -->
+                    </select>
+                </div>
+                <div class="payment-methods">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="radio" name="payment-method" id="cash-payment" value="efectivo">
+                        <label class="form-check-label" for="cash-payment">Efectivo</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="radio" name="payment-method" id="transfer-payment" value="transferencia">
+                        <label class="form-check-label" for="transfer-payment">Transferencia</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón para realizar cobro -->
+            <div class="submit-container">
+                <button type="button" class="btn btn-success btn-lg">Realizar Cobro</button>
+            </div>
         </div>
     </div>
 
@@ -74,9 +182,12 @@
                     .then(data => {
                         const tableContainer = document.getElementById('table-container');
                         const tableBody = document.getElementById('table-body');
+                        const totalAmountElement = document.getElementById('total-amount');
 
                         // Limpiar el contenido anterior de la tabla
                         tableBody.innerHTML = '';
+
+                        let totalAmount = 0;
 
                         // Agregar nuevas filas a la tabla
                         data.forEach(item => {
@@ -90,18 +201,42 @@
                                 <td>$ ${item.importe_periodo}</td>
                                 <td>$ ${item.expensas_comunes}</td>
                                 <td>$ ${item.expensas_extraordinarias}</td>
-                                <td>$ ${item.total_a_cobrar}</td>
                             `;
                             tableBody.appendChild(row);
+
+                            // Sumar al total
+                            totalAmount += parseFloat(item.total_a_cobrar);
                         });
 
-                        tableContainer.style.display = 'block'; // Mostrar la tabla
+                        // Mostrar el total
+                        totalAmountElement.textContent = totalAmount.toFixed(2);
+                        tableContainer.style.display = 'block'; // Mostrar la tabla y el total
                     })
                     .catch(error => console.error('Error fetching data:', error));
             } else {
                 const tableContainer = document.getElementById('table-container');
-                tableContainer.style.display = 'none'; // Ocultar la tabla
+                tableContainer.style.display = 'none'; // Ocultar la tabla y el total
             }
+        });
+
+        window.addEventListener('load', function() {
+            fetch('/users/api/users') // Cambia la URL aquí
+                .then(response => response.json())
+                .then(users => {
+                    const userSelect = document.getElementById('user-select');
+                    
+                    // Limpiar opciones anteriores
+                    userSelect.innerHTML = '';
+        
+                    // Agregar opciones nuevas
+                    users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.username; // Asumiendo que 'username' es el nombre del usuario
+                        userSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
         });
     </script>
 </body>

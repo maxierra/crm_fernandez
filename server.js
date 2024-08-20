@@ -6,6 +6,9 @@ const session = require('express-session');
 const db = require('./db/database'); // Importar la base de datos
 const contratosRoutes = require('./routes/contratos');
 const expensasRoutes = require('./routes/expensas'); // Importa las rutas de expensas
+const pagosABLRoutes = require('./routes/pagosABLRoutes');
+const indicesRoutes = require('./routes/indices');
+const userRoutes = require('./routes/users');
 
 
 
@@ -41,8 +44,8 @@ app.use(session({
 }));
 
 // Importar rutas
-const indicesRoutes = require('./routes/indices');
-const userRoutes = require('./routes/users');
+
+app.use('/api/pagos-abl', pagosABLRoutes);
 
 // Usar las rutas
 app.use('/', indicesRoutes);

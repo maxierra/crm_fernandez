@@ -3,185 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar Pago ABL</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Gestión de Pagos ABL</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+    <!-- Incluir el navbar -->
     <%- include('navbar') %>
-    <!-- Incluye el navbar reutilizable -->
+    <div class="container">
+        <h1 class="mt-4">Cargar Pago ABL</h1>
 
-<div class="container mt-5">
-    <h2 class="mb-4">Cargar Pago ABL</h2>
-    
-    <!-- Formulario de búsqueda -->
-    <form id="buscarInquilinoForm" class="row g-3">
-        <div class="col-md-8">
-            <input type="text" id="buscar" class="form-control" placeholder="Buscar por ID, nombre o calle">
-        </div>
-        <div class="col-md-4">
-            <button type="button" class="btn btn-primary w-100" onclick="buscarInquilino()">Buscar</button>
-        </div>
-    </form>
-    
-    <!-- Formulario de carga de pago ABL -->
-    <form id="cargarPagoABLForm" class="mt-4 row g-3">
-        <div class="col-md-4">
-            <label for="calle" class="form-label">Calle</label>
-            <input type="text" id="calle" class="form-control" disabled>
-        </div>
-        <div class="col-md-2">
-            <label for="numero" class="form-label">Número</label>
-            <input type="text" id="numero" class="form-control" disabled>
-        </div>
-        <div class="col-md-6">
-            <label for="nombrePropietario" class="form-label">Nombre del propietario</label>
-            <input type="text" id="nombrePropietario" class="form-control" disabled>
-        </div>
-        <div class="col-md-6">
-            <label for="montoABL" class="form-label">Monto ABL</label>
-            <input type="number" id="montoABL" class="form-control">
-        </div>
-        <div class="col-md-6">
-            <label for="mes" class="form-label">Mes</label>
-            <select id="mes" class="form-select">
-                <option value="01">Enero</option>
-                <option value="02">Febrero</option>
-                <option value="03">Marzo</option>
-                <option value="04">Abril</option>
-                <option value="05">Mayo</option>
-                <option value="06">Junio</option>
-                <option value="07">Julio</option>
-                <option value="08">Agosto</option>
-                <option value="09">Septiembre</option>
-                <option value="10">Octubre</option>
-                <option value="11">Noviembre</option>
-                <option value="12">Diciembre</option>
-            </select>
-        </div>
-        <div class="col-md-6">
-            <label for="anio" class="form-label">Año</label>
-            <select id="anio" class="form-select">
-                <!-- Se llenará dinámicamente con los años -->
-            </select>
-        </div>
-        <div class="col-md-12">
-            <button type="button" class="btn btn-success w-100" onclick="guardarPagoABL()">Guardar</button>
-        </div>
-    </form>
+        <!-- Formulario de Búsqueda -->
+        <form id="busquedaInquilinoForm" class="mt-4">
+            <div class="form-group">
+                <label for="search">Buscar propietario</label>
+                <input type="text" id="search" class="form-control" required>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="buscarInquilino()">Buscar</button>
+        </form>
 
-    <!-- Modal de éxito -->
-    <div id="modalSuccess" class="alert alert-success mt-4" style="display:none;">Pago ABL guardado con éxito</div>
+        <!-- Formulario de Carga de Pago ABL -->
+        <form id="cargarPagoABLForm" class="mt-4">
+            <input type="hidden" id="id_pago" required> <!-- Campo oculto para guardar el ID del pago -->
+            <div class="form-group">
+                <label for="calle">Calle</label>
+                <input type="text" id="calle" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="numero">Número</label>
+                <input type="text" id="numero" class="form-control" required>
+            </div>
+            <input type="hidden" id="nombre" required> <!-- Campo oculto para guardar el nombre del propietario -->
+            <div class="form-group">
+                <label for="monto_abl">Monto ABL</label>
+                <input type="number" id="monto_abl" class="form-control" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="periodo">Periodo</label>
+                <input type="month" id="periodo" class="form-control" required>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="guardarPagoABL()">Guardar</button>
+        </form>
 
-    <!-- Tabla de pagos ABL -->
-    <h3 class="mt-5">Pagos ABL Cargados</h3>
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped mt-3" id="tablaPagosABL">
-            <thead class="table-dark">
+        <h2 class="mt-4">Lista de Pagos ABL</h2>
+        <table class="table table-bordered mt-2" id="tablaPagosABL">
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>Calle</th>
                     <th>Número</th>
-                    <th>Propietario</th>
+                    <th>Nombre</th>
                     <th>Monto ABL</th>
                     <th>Periodo</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Aquí se llenará la tabla con los datos -->
+                <!-- Las filas se llenarán con JavaScript -->
             </tbody>
         </table>
     </div>
-</div>
 
-<script>
-    // Llenar automáticamente el selector de años con opciones
-    const currentYear = new Date().getFullYear();
-    const selectAnio = document.getElementById('anio');
-    for (let i = currentYear; i >= currentYear - 10; i--) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.text = i;
-        selectAnio.appendChild(option);
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', obtenerPagosABL);
 
-    function buscarInquilino() {
-        const search = document.getElementById('buscar').value;
-        fetch(`/buscar-inquilino?search=${search}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('calle').value = data.calle;
-            document.getElementById('numero').value = data.numero;
-            document.getElementById('nombrePropietario').value = data.nombre;
-        });
-    }
+        function buscarInquilino() {
+            const search = document.getElementById('search').value;
+        
+            fetch(`/api/pagos-abl/buscar-inquilino?search=${encodeURIComponent(search)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Asegúrate de que estás recibiendo los datos correctos
+                    if (data) {
+                        document.getElementById('calle').value = data.calle;
+                        document.getElementById('numero').value = data.nro;
+                        document.getElementById('nombre').value = data.nombre; // Almacena el nombre en un campo oculto
+                    } else {
+                        alert('No se encontró ningún propietario.');
+                    }
+                })
+                .catch(error => console.error('Error al buscar inquilino:', error));
+        }
+        
+        function limpiarFormulario() {
+            document.getElementById('cargarPagoABLForm').reset(); // Limpia todos los campos del formulario de carga de pago
+            document.getElementById('id_pago').value = ''; // Limpia el ID del pago
+        }
 
-    function guardarPagoABL() {
-        const montoABL = document.getElementById('montoABL').value;
-        const mes = document.getElementById('mes').value;
-        const anio = document.getElementById('anio').value;
-        const periodo = `${mes}/${anio}`;
+        function guardarPagoABL() {
+            const id_pago = document.getElementById('id_pago').value;
+            const calle = document.getElementById('calle').value;
+            const numero = document.getElementById('numero').value;
+            const nombre = document.getElementById('nombre').value; // Recupera el nombre del campo oculto
+            const monto_abl = document.getElementById('monto_abl').value;
+            const periodo = document.getElementById('periodo').value;
 
-        fetch('/guardar-pago-abl', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ montoABL, periodo })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('modalSuccess').style.display = 'block';
-                // Actualizar la tabla de pagos ABL
-                obtenerPagosABL();
-            }
-        });
-    }
+            const method = id_pago ? 'PUT' : 'POST'; // Usa PUT si id_pago existe, de lo contrario usa POST
+            const url = id_pago ? `/api/pagos-abl/editar-pago-abl/${id_pago}` : '/api/pagos-abl/guardar-pago-abl';
 
-    function obtenerPagosABL() {
-        fetch('/obtener-pagos-abl')
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.querySelector('#tablaPagosABL tbody');
-            tbody.innerHTML = '';
-            data.forEach(pago => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${pago.id}</td>
-                    <td>${pago.calle}</td>
-                    <td>${pago.numero}</td>
-                    <td>${pago.nombre}</td>
-                    <td>${pago.monto_abl}</td>
-                    <td>${pago.periodo}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editarPagoABL(${pago.id})">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="eliminarPagoABL(${pago.id})">Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        });
-    }
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ calle, numero, nombre, monto_abl, periodo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Pago ABL guardado/actualizado con éxito');
+                    obtenerPagosABL();
+                    limpiarFormulario(); // Limpia el formulario de carga de pago
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
 
-    function eliminarPagoABL(id) {
-        fetch(`/eliminar-pago-abl/${id}`, { method: 'DELETE' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                obtenerPagosABL();
-            }
-        });
-    }
+        function obtenerPagosABL() {
+            fetch('/api/pagos-abl/obtener-pagos-abl')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#tablaPagosABL tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(pago => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${pago.id}</td>
+                            <td>${pago.calle}</td>
+                            <td>${pago.numero}</td>
+                            <td>${pago.nombre}</td>
+                            <td>${pago.monto_abl}</td>
+                            <td>${pago.periodo}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" onclick="cargarDatosParaEdicion(${pago.id})">Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="eliminarPagoABL(${pago.id})">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
 
-    function editarPagoABL(id) {
-        // Similar a guardarPagoABL, pero se actualiza el registro existente
-    }
+        function cargarDatosParaEdicion(id) {
+            fetch(`/api/pagos-abl/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('id_pago').value = data.id;
+                        document.getElementById('calle').value = data.calle;
+                        document.getElementById('numero').value = data.numero;
+                        document.getElementById('nombre').value = data.nombre;
+                        document.getElementById('monto_abl').value = data.monto_abl;
+                        document.getElementById('periodo').value = data.periodo;
+                    } else {
+                        alert('No se encontró el pago ABL.');
+                    }
+                })
+                .catch(error => console.error('Error al cargar datos para edición:', error));
+        }
+        
 
-    // Inicialmente cargamos todos los pagos ABL
-    obtenerPagosABL();
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        function eliminarPagoABL(id) {
+            fetch(`/api/pagos-abl/eliminar-pago-abl/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Pago ABL eliminado con éxito');
+                    obtenerPagosABL();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
