@@ -505,14 +505,6 @@ app.get('/api/cobro-alquileres', (req, res) => {
   });
 });
 
-
-
-
-
-
-
-
-
   app.get('/', (req, res) => {
     db.all('SELECT * FROM contratos', [], (err, rows) => {
         if (err) {
@@ -570,7 +562,6 @@ app.get('/api/cobro-alquileres', (req, res) => {
   });
   
   
-  
   app.post('/delete/:id', (req, res) => {
     const { id } = req.params;
     const sql = `DELETE FROM contratos WHERE id = ?`;
@@ -592,6 +583,39 @@ app.get('/api/cobro-alquileres', (req, res) => {
         res.json(contrato);
     });
   });
+
+
+  app.post('/api/cobro-alquileres', (req, res) => {
+    const {
+        inquilino,
+        propietario,
+        calle,
+        nro,
+        dto,
+        periodo,
+        importe_periodo,
+        expensas_comunes,
+        expensas_extraordinarias,
+        estado1,
+        estado2,
+        user_id,
+        payment_method
+    } = req.body;
+
+    const created_at = new Date(); // Fecha y hora actual
+
+    const sql = `
+        INSERT INTO cobro_alquileres (inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(sql, [inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at], function (err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Cobro registrado exitosamente', id: this.lastID });
+    });
+});
 
 
 

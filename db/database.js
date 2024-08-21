@@ -219,5 +219,40 @@ const createAlquileresCalculosTable = () => {
 // Llama a la función para crear la tabla
 createAlquileresCalculosTable();
 
+// Crear la tabla cobro_alquileres si no existe
+const createCobroAlquileresTable = () => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS cobro_alquileres (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inquilino TEXT NOT NULL,
+    propietario TEXT NOT NULL,
+    calle TEXT NOT NULL,
+    nro TEXT NOT NULL,
+    dto TEXT NOT NULL,
+    periodo TEXT NOT NULL,
+    importe_periodo DECIMAL(10, 2) NOT NULL,
+    expensas_comunes DECIMAL(10, 2) NOT NULL,
+    expensas_extraordinarias DECIMAL(10, 2) NOT NULL,
+    estado1 TEXT,
+    estado2 TEXT,
+    user_id INTEGER,
+    payment_method TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+  
+  db.run(sql, (err) => {
+    if (err) {
+      console.error('Error al crear la tabla cobro_alquileres:', err.message);
+    } else {
+      console.log('Tabla cobro_alquileres creada o ya existe.');
+    }
+  });
+};
+
+// Llama a la función para crear la tabla
+createCobroAlquileresTable();
+
+
 
 module.exports = db;

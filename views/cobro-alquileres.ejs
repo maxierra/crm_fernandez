@@ -1,243 +1,347 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cobro de Alquileres</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+      body {
+        background-color: #f8f9fa;
+      }
 
-        .custom-header {
-            background: linear-gradient(to right, #990000, #330000);
-            color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
+      .custom-header {
+        background: linear-gradient(to right, #990000, #330000);
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
 
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
+      .table tbody tr:hover {
+        background-color: #f8f9fa;
+      }
 
-        /* Estilos para el total a cobrar */
-        .total-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #000;
-            border-radius: 10px;
-            text-align: center; /* Centramos el texto */
-        }
+      /* Estilos para el total a cobrar */
+      .total-container {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #000;
+        border-radius: 10px;
+        text-align: center; /* Centramos el texto */
+      }
 
-        .total-container span {
-            color: #0f0;
-            font-size: 28px; /* Aumentamos el tamaño de la fuente */
-            font-weight: bold;
-        }
+      .total-container span {
+        color: #0f0;
+        font-size: 28px; /* Aumentamos el tamaño de la fuente */
+        font-weight: bold;
+      }
 
-        /* Estilos para el select de usuarios */
-        .user-select-container {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+      /* Estilos para el select de usuarios */
+      .user-select-container {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-        .user-select-container .user-select {
-            flex: 1;
-            text-align: left; /* Alineamos a la izquierda */
-        }
+      .user-select-container .user-select {
+        flex: 1;
+        text-align: left; /* Alineamos a la izquierda */
+      }
 
-        .user-select-container select {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
+      .user-select-container select {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
 
-        /* Estilos para el toggle switch */
-        .payment-methods {
-            flex: 1;
-            text-align: right; /* Alineamos a la derecha */
-        }
+      /* Estilos para el toggle switch */
+      .payment-methods {
+        flex: 1;
+        text-align: right; /* Alineamos a la derecha */
+      }
 
-        .payment-methods .form-check {
-            display: flex;
-            align-items: center;
-        }
+      .payment-methods .form-check {
+        display: flex;
+        align-items: center;
+      }
 
-        .payment-methods .form-check input {
-            width: 50px;
-            height: 30px;
-        }
+      .payment-methods .form-check input {
+        width: 50px;
+        height: 30px;
+      }
 
-        .payment-methods .form-check .form-check-label {
-            margin-left: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
+      .payment-methods .form-check .form-check-label {
+        margin-left: 10px;
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-        .form-check-input:checked {
-            background-color: green;
-            border-color: green;
-        }
+      .form-check-input:checked {
+        background-color: green;
+        border-color: green;
+      }
 
-        .form-check-input:not(:checked) {
-            background-color: red;
-            border-color: red;
-        }
+      .form-check-input:not(:checked) {
+        background-color: red;
+        border-color: red;
+      }
 
-        /* Botón grande para realizar cobro */
-        .submit-container {
-            margin-top: 20px;
-            text-align: center;
-        }
+      /* Botón grande para realizar cobro */
+      .submit-container {
+        margin-top: 20px;
+        text-align: center;
+      }
 
-        .submit-container button {
-            padding: 15px 30px;
-            font-size: 18px;
-        }
+      .submit-container button {
+        padding: 15px 30px;
+        font-size: 18px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Incluir el navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
-        <%- include('navbar') %>
+      <%- include('navbar') %>
     </nav>
     <div class="container mt-5">
-        <!-- Encabezado personalizado -->
-        <div class="custom-header">
-            <h1 class="text-center mb-0">Cobro de Alquileres</h1>
+      <!-- Encabezado personalizado -->
+      <div class="custom-header">
+        <h1 class="text-center mb-0">Cobro de Alquileres</h1>
+      </div>
+
+      <!-- Formulario de búsqueda -->
+      <form id="search-form" class="mb-4 rounded shadow-sm p-3">
+        <div class="input-group">
+          <input
+            type="text"
+            id="search-input"
+            class="form-control"
+            placeholder="Buscar por inquilino"
+            aria-label="Buscar por inquilino"
+          />
+          <button class="btn btn-danger" type="submit">Buscar</button>
+        </div>
+      </form>
+
+      <!-- Tabla para mostrar los datos -->
+      <div id="table-container" style="display: none">
+        <table class="table table-bordered rounded shadow-sm">
+          <thead>
+            <tr>
+              <th>Inquilino</th>
+              <th>Propietario</th>
+              <th>Calle</th>
+              <th>Número</th>
+              <th>Departamento</th>
+              <th>Importe del Periodo</th>
+              <th>Expensas Comunes</th>
+              <th>Expensas Extraordinarias</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Las filas se agregarán aquí dinámicamente -->
+          </tbody>
+        </table>
+
+        <!-- Contenedor para el total a cobrar -->
+        <div id="total-container" class="total-container">
+          <span>Total a Cobrar: $<span id="total-amount">0.00</span></span>
         </div>
 
-        <!-- Formulario de búsqueda -->
-        <form id="search-form" class="mb-4 rounded shadow-sm p-3">
-            <div class="input-group">
-                <input type="text" id="search-input" class="form-control" placeholder="Buscar por inquilino" aria-label="Buscar por inquilino">
-                <button class="btn btn-danger" type="submit">Buscar</button>
+        <!-- Contenedor para seleccionar el usuario y métodos de pago -->
+        <div id="user-select-container" class="user-select-container">
+          <div class="user-select">
+            <label for="user-select">Cobro realizado por:</label>
+            <select id="user-select">
+              <!-- Opciones se llenarán dinámicamente -->
+            </select>
+          </div>
+          <div class="payment-methods">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="payment-method"
+                id="cash-payment"
+                value="efectivo"
+              />
+              <label class="form-check-label" for="cash-payment"
+                >Efectivo</label
+              >
             </div>
-        </form>
-
-        <!-- Tabla para mostrar los datos -->
-        <div id="table-container" style="display: none;">
-            <table class="table table-bordered rounded shadow-sm">
-                <thead>
-                    <tr>
-                        <th>Inquilino</th>
-                        <th>Propietario</th>
-                        <th>Calle</th>
-                        <th>Número</th>
-                        <th>Departamento</th>
-                        <th>Importe del Periodo</th>
-                        <th>Expensas Comunes</th>
-                        <th>Expensas Extraordinarias</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <!-- Las filas se agregarán aquí dinámicamente -->
-                </tbody>
-            </table>
-
-            <!-- Contenedor para el total a cobrar -->
-            <div id="total-container" class="total-container">
-                <span>Total a Cobrar: $<span id="total-amount">0.00</span></span>
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="payment-method"
+                id="transfer-payment"
+                value="transferencia"
+              />
+              <label class="form-check-label" for="transfer-payment"
+                >Transferencia</label
+              >
             </div>
-
-            <!-- Contenedor para seleccionar el usuario y métodos de pago -->
-            <div id="user-select-container" class="user-select-container">
-                <div class="user-select">
-                    <label for="user-select">Cobro realizado por:</label>
-                    <select id="user-select">
-                        <!-- Opciones se llenarán dinámicamente -->
-                    </select>
-                </div>
-                <div class="payment-methods">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="radio" name="payment-method" id="cash-payment" value="efectivo">
-                        <label class="form-check-label" for="cash-payment">Efectivo</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="radio" name="payment-method" id="transfer-payment" value="transferencia">
-                        <label class="form-check-label" for="transfer-payment">Transferencia</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botón para realizar cobro -->
-            <div class="submit-container">
-                <button type="button" class="btn btn-success btn-lg">Realizar Cobro</button>
-            </div>
+          </div>
         </div>
+
+        <!-- Botón para realizar cobro -->
+        <div class="submit-container">
+          <button
+            type="button"
+            class="btn btn-success btn-lg"
+            id="submit-cobro"
+          >
+            Realizar Cobro
+          </button>
+        </div>
+      </div>
     </div>
-
     <script>
-        document.getElementById('search-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const searchValue = document.getElementById('search-input').value.trim();
+      // Función para manejar el envío del formulario de búsqueda
+      document
+        .getElementById("search-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const searchValue = document
+            .getElementById("search-input")
+            .value.trim();
 
-            if (searchValue) {
-                fetch(`/api/cobro-alquileres?nombre=${encodeURIComponent(searchValue)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const tableContainer = document.getElementById('table-container');
-                        const tableBody = document.getElementById('table-body');
-                        const totalAmountElement = document.getElementById('total-amount');
+          if (searchValue) {
+            fetch(
+              `/api/cobro-alquileres?nombre=${encodeURIComponent(searchValue)}`
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                const tableContainer =
+                  document.getElementById("table-container");
+                const tableBody = document.getElementById("table-body");
+                const totalAmountElement =
+                  document.getElementById("total-amount");
 
-                        // Limpiar el contenido anterior de la tabla
-                        tableBody.innerHTML = '';
+                // Limpiar el contenido anterior de la tabla
+                tableBody.innerHTML = "";
 
-                        let totalAmount = 0;
+                let totalAmount = 0;
 
-                        // Agregar nuevas filas a la tabla
-                        data.forEach(item => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${item.inquilino}</td>
-                                <td>${item.propietario}</td>
-                                <td>${item.calle}</td>
-                                <td>${item.nro}</td>
-                                <td>${item.dto}</td>
-                                <td>$ ${item.importe_periodo}</td>
-                                <td>$ ${item.expensas_comunes}</td>
-                                <td>$ ${item.expensas_extraordinarias}</td>
-                            `;
-                            tableBody.appendChild(row);
+                // Agregar nuevas filas a la tabla
+                data.forEach((item) => {
+                  const row = document.createElement("tr");
+                  row.innerHTML = `
+                        <td>${item.inquilino}</td>
+                        <td>${item.propietario}</td>
+                        <td>${item.calle}</td>
+                        <td>${item.nro}</td>
+                        <td>${item.dto}</td>
+                        <td>$ ${item.importe_periodo}</td>
+                        <td>$ ${item.expensas_comunes}</td>
+                        <td>$ ${item.expensas_extraordinarias}</td>
+                    `;
+                  tableBody.appendChild(row);
 
-                            // Sumar al total
-                            totalAmount += parseFloat(item.total_a_cobrar);
-                        });
+                  // Sumar al total
+                  totalAmount += parseFloat(item.total_a_cobrar);
+                });
 
-                        // Mostrar el total
-                        totalAmountElement.textContent = totalAmount.toFixed(2);
-                        tableContainer.style.display = 'block'; // Mostrar la tabla y el total
-                    })
-                    .catch(error => console.error('Error fetching data:', error));
-            } else {
-                const tableContainer = document.getElementById('table-container');
-                tableContainer.style.display = 'none'; // Ocultar la tabla y el total
-            }
+                // Mostrar el total
+                totalAmountElement.textContent = totalAmount.toFixed(2);
+                tableContainer.style.display = "block"; // Mostrar la tabla y el total
+              })
+              .catch((error) => console.error("Error fetching data:", error));
+          } else {
+            const tableContainer = document.getElementById("table-container");
+            tableContainer.style.display = "none"; // Ocultar la tabla y el total
+          }
         });
 
-        window.addEventListener('load', function() {
-            fetch('/users/api/users') // Cambia la URL aquí
-                .then(response => response.json())
-                .then(users => {
-                    const userSelect = document.getElementById('user-select');
-                    
-                    // Limpiar opciones anteriores
-                    userSelect.innerHTML = '';
+      // Función para cargar los usuarios al cargar la página
+      window.addEventListener("load", function () {
+        fetch("/users/api/users") // Cambia la URL aquí
+          .then((response) => response.json())
+          .then((users) => {
+            const userSelect = document.getElementById("user-select");
+
+            // Limpiar opciones anteriores
+            userSelect.innerHTML = "";
+
+            // Agregar opciones nuevas
+            users.forEach((user) => {
+              const option = document.createElement("option");
+              option.value = user.id;
+              option.textContent = user.username; // Asumiendo que 'username' es el nombre del usuario
+              userSelect.appendChild(option);
+            });
+          })
+          .catch((error) => console.error("Error fetching users:", error));
+      });
+
+      // Función para manejar el registro del cobro
+      document
+        .getElementById("submit-cobro")
+        .addEventListener("click", function () {
+          const selectedUser = document.getElementById("user-select").value;
+          const paymentMethod = document.querySelector(
+            'input[name="payment-method"]:checked'
+          ).value;
+
+          const cobroData = {
+            inquilino: document
+              .querySelector("#table-body tr:first-child td:nth-child(1)")
+              .textContent.trim(),
+            propietario: document
+              .querySelector("#table-body tr:first-child td:nth-child(2)")
+              .textContent.trim(),
+            calle: document
+              .querySelector("#table-body tr:first-child td:nth-child(3)")
+              .textContent.trim(),
+            nro: document
+              .querySelector("#table-body tr:first-child td:nth-child(4)")
+              .textContent.trim(),
+            dto: document
+              .querySelector("#table-body tr:first-child td:nth-child(5)")
+              .textContent.trim(),
+            periodo: "Periodo actual", // Definido estáticamente
+            importe_periodo: document
+              .querySelector("#table-body tr:first-child td:nth-child(6)")
+              .textContent.replace("$", "")
+              .trim(),
+            expensas_comunes: document
+              .querySelector("#table-body tr:first-child td:nth-child(7)")
+              .textContent.replace("$", "")
+              .trim(),
+            expensas_extraordinarias: document
+              .querySelector("#table-body tr:first-child td:nth-child(8)")
+              .textContent.replace("$", "")
+              .trim(),
+            estado1: "cobrado", // Cambiado a cadena
+            estado2: "pendiente de rendición", // Cambiado a cadena
+            user_id: selectedUser,
+            payment_method: paymentMethod,
+        };
         
-                    // Agregar opciones nuevas
-                    users.forEach(user => {
-                        const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = user.username; // Asumiendo que 'username' es el nombre del usuario
-                        userSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching users:', error));
+
+          fetch("/api/cobro-alquileres", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(cobroData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.message) {
+                alert(data.message);
+                // Lógica de éxito aquí
+              }
+            })
+            .catch((error) =>
+              console.error("Error registrando el cobro:", error)
+            );
         });
     </script>
-</body>
+  </body>
 </html>
