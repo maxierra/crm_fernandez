@@ -336,9 +336,9 @@ app.get('/api/cobro-alquileres', (req, res) => {
       const obtenerExpensas = (propietario) => {
         return new Promise((resolve, reject) => {
           const sqlExpensas = `
-            SELECT expensas_comunes, expensas_extraordinarias
+            SELECT expensas_comunes, expensas_extraordinarias, estado
             FROM expensas
-            WHERE nombre_propietario = ?
+            WHERE nombre_propietario = ? AND estado = 'Pendiente'
           `;
           
           db.get(sqlExpensas, [propietario], (err, expensas) => {
@@ -346,14 +346,13 @@ app.get('/api/cobro-alquileres', (req, res) => {
               return reject('Error al obtener las expensas');
             }
       
-            console.log('Expensas obtenidas:', expensas);
+            console.log('Expensas obtenidas (pendientes):', expensas);
       
-            resolve(expensas || { expensas_comunes: 0, expensas_extraordinarias: 0 });
+            resolve(expensas || { expensas_comunes: 0, expensas_extraordinarias: 0, estado: 'Pendiente' });
           });
         });
       };
       
-  
       const convertirFecha = (fecha) => {
         if (!fecha || typeof fecha !== 'string') {
           console.error('Fecha no válida:', fecha);
@@ -428,6 +427,7 @@ app.get('/api/cobro-alquileres', (req, res) => {
       
         return fechas;
       };
+
       const calcularAjusteICL = (importeAnterior, valorICLAnterior, valorICLActual) => {
         if (valorICLAnterior === 0) {
           return importeAnterior;
@@ -472,20 +472,18 @@ app.get('/api/cobro-alquileres', (req, res) => {
           const totalACobrar = importePeriodo + expensas.expensas_comunes + expensas.expensas_extraordinarias;
   
           return {
-            
             inquilino: contrato.inquilino,
             propietario: contrato.propietario,
             calle: contrato.calle,
             nro: contrato.nro,
             dto: contrato.dto,
-            
-          
             periodo_fin: periodoActual.fin,
             importe_periodo: importePeriodo.toFixed(2),
             icl_inicio: valorInicio,
             icl_fin: valorFin,
             expensas_comunes: expensas.expensas_comunes,
             expensas_extraordinarias: expensas.expensas_extraordinarias,
+            estado_expensas: expensas.estado,
             total_a_cobrar: totalACobrar.toFixed(2)
           };
         }
@@ -504,6 +502,7 @@ app.get('/api/cobro-alquileres', (req, res) => {
     });
   });
 });
+
 
   app.get('/', (req, res) => {
     db.all('SELECT * FROM contratos', [], (err, rows) => {

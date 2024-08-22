@@ -179,6 +179,15 @@
         fetch('/obtener-expensas')
         .then(response => response.json())
         .then(data => {
+            // Función para convertir "MM/YYYY" a un objeto Date
+            function periodoAFecha(periodo) {
+                const [mes, anio] = periodo.split('/');
+                return new Date(anio, mes - 1, 1); // El mes en Date es 0-indexado
+            }
+    
+            // Ordenar los datos por periodo
+            data.sort((a, b) => periodoAFecha(b.periodo) - periodoAFecha(a.periodo));
+    
             const tbody = document.querySelector('#tablaExpensas tbody');
             tbody.innerHTML = '';
             data.forEach(expensa => {
@@ -187,7 +196,7 @@
                     <td>${expensa.id}</td>
                     <td>${expensa.calle}</td>
                     <td>${expensa.numero}</td>
-                    <td>${expensa.nombre_propietario || 'No definido'}</td> <!-- Cambiado aquí -->
+                    <td>${expensa.nombre_propietario || 'No definido'}</td>
                     <td>${expensa.expensas_comunes}</td>
                     <td>${expensa.expensas_extraordinarias}</td>
                     <td>${expensa.periodo}</td>
@@ -202,7 +211,6 @@
         })
         .catch(error => console.error('Error al obtener expensas:', error));
     }
-    
     function editarExpensas(id) {
         fetch(`/obtener-expensas/${id}`)
         .then(response => response.json())
