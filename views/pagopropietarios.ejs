@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago a Propietarios - Elegante</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(to right, #990000, #330000);
+            --secondary-color: #990000;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background-color: var(--card-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .detail-row .deduction {
+            color: red;
+            font-weight: 600;
+        }
+
+        .detail-row .deduction:before {
+            content: "➖";
+            margin-right: 5px;
+        }
+
+        .total {
+            font-weight: 600;
+            font-size: 1.3em;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--secondary-color);
+        }
+
+        .payment-options {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .payment-option {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover,
+        .payment-option.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(153, 0, 0, 0.3);
+        }
+
+        .cbu {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #processPayment {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        #processPayment:hover {
+            opacity: 0.9;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(153, 0, 0, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('navbar') %>
+    <div class="container">
+        <div class="header">
+            <h1>Pago a Propietarios</h1>
+        </div>
+        <div class="content">
+            <!-- Formulario de Búsqueda por Propietario -->
+            <form id="searchForm" class="form-inline mb-4 animate">
+                <div class="input-group w-100">
+                    <input type="text" id="propietario" name="propietario" class="form-control" placeholder="Buscar propietario" required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Resultado de la búsqueda -->
+            <div id="resultado" class="animate" style="animation-delay: 0.2s;">
+                <!-- Aquí se mostrará el resultado de la búsqueda -->
+            </div>
+
+            <div class="section payment-method animate" style="animation-delay: 0.4s;">
+                <h2>Método de Pago</h2>
+                <div class="payment-options">
+                    <div class="payment-option active" data-method="efectivo">Efectivo</div>
+                    <div class="payment-option" data-method="transferencia">Transferencia</div>
+                </div>
+            </div>
+
+            <div id="cbu" class="cbu animate" style="animation-delay: 0.6s;">
+                <p>CBU para transferencia: 0123456789012345678901</p>
+            </div>
+
+            <button id="processPayment" class="animate" style="animation-delay: 1s;">Procesar Pago</button>
+        </div>
+    </div>
+
+    <script>
+        // Código de búsqueda del propietario
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const propietario = document.getElementById('propietario').value;
+
+            fetch('/buscar-propietario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ propietario: propietario })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(error => {
+                            throw new Error(error.message || 'Error desconocido');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultadoDiv = document.getElementById('resultado');
+                    let resultHtml = '';
+
+                    if (data.error) {
+                        resultHtml += `<p class="text-danger">Error: ${data.error}</p>`;
+                    } else {
+                        resultHtml += `<div class="section payment-details animate" style="animation-delay: 0.2s;">`;
+                        resultHtml += `<h2>Detalle de Pagos</h2>`;
+                        resultHtml += `<div class="detail-row">`;
+                        resultHtml += `<span>Importe del periodo:</span><span>$${data.importePeriodo.toFixed(2)}</span>`;
+                        resultHtml += `</div>`;
+                        resultHtml += `<div class="detail-row deduction">`;
+                        resultHtml += `<span>Monto ABL:</span><span>-$${data.montoABL.toFixed(2)}</span>`;
+                        resultHtml += `</div>`;
+                        resultHtml += `<div class="detail-row deduction">`;
+                        resultHtml += `<span>Administración (Comisión):</span><span>-$${data.administracion.toFixed(2)}</span>`;
+                        resultHtml += `</div>`;
+                        resultHtml += `<div class="detail-row total">`;
+                        resultHtml += `<span>Total:</span><span>$${data.total.toFixed(2)}</span>`;
+                        resultHtml += `</div>`;
+                        resultHtml += `</div>`;
+                    }
+
+                    resultadoDiv.innerHTML = resultHtml;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('resultado').innerHTML = `<p class="text-danger">Error en la respuesta del servidor: ${error.message}</p>`;
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const cbuDiv = document.getElementById('cbu');
+            const processButton = document.getElementById('processPayment');
+
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function () {
+                    paymentOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (this.dataset.method === 'transferencia') {
+                        cbuDiv.style.display = 'block';
+                    } else {
+                        cbuDiv.style.display = 'none';
+                    }
+                });
+            });
+
+            processButton.addEventListener('click', function () {
+                const selectedMethod = document.querySelector('.payment-option.active').dataset.method;
+                alert(`Pago procesado con método: ${selectedMethod}`);
+                // Aquí podrías agregar el código para procesar el pago en el backend
+            });
+        });
+    </script>
+</body>
+
+</html>

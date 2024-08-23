@@ -133,6 +133,11 @@ app.get('/reclamos', (req, res) => {
   res.render('reclamos'); // Renderiza el archivo 'reclamos.ejs'
 });
 
+app.get('/pagopropietarios', (req, res) => {
+  res.render('pagopropietarios');
+});
+
+
 app.get('/resumen', (req, res) => {
   const sqlContratos = `
   SELECT id, inicio_contrato, finalizacion_contrato, tipo_incremento, importe
@@ -614,6 +619,60 @@ app.get('/api/cobro-alquileres', (req, res) => {
         }
         res.json({ message: 'Cobro registrado exitosamente', id: this.lastID });
     });
+});
+
+
+app.post('/buscar-propietario', (req, res) => {
+  const { propietario } = req.body;
+
+  if (!propietario) {
+      return res.status(400).json({ error: "Propietario es requerido" });
+  }
+
+  const sqlAlquileres = `SELECT importe_periodo FROM cobro_alquileres WHERE propietario = ?`;
+  const sqlABL = `SELECT monto_abl FROM pagos_abl WHERE nombre = ?`;
+  const sqlComision = `SELECT comision FROM contratos WHERE propietario = ?`;
+
+  // Ejecutar las consultas
+  db.all(sqlAlquileres, [propietario], (err, rowsAlquileres) => {
+      if (err) {
+          console.error("Error en la consulta SQL (Alquileres):", err.message);
+          return res.status(500).json({ error: "Error en la consulta de base de datos (Alquileres)" });
+      }
+
+      db.all(sqlABL, [propietario], (err, rowsABL) => {
+          if (err) {
+              console.error("Error en la consulta SQL (ABL):", err.message);
+              return res.status(500).json({ error: "Error en la consulta de base de datos (ABL)" });
+          }
+
+          db.get(sqlComision, [propietario], (err, rowComision) => {
+              if (err) {
+                  console.error("Error en la consulta SQL (Comisión):", err.message);
+                  return res.status(500).json({ error: "Error en la consulta de base de datos (Comisión)" });
+              }
+
+              // Obtener los valores
+              let importePeriodo = rowsAlquileres.length > 0 ? rowsAlquileres[0].importe_periodo : 0;
+              let montoABL = rowsABL.length > 0 ? rowsABL[0].monto_abl : 0;
+              let comision = rowComision ? rowComision.comision : 0;
+
+              // Calcular el valor de la administración
+              let administracion = (comision / 100) * importePeriodo;
+
+              // Calcular el total a pagar al propietario
+              let total = importePeriodo - montoABL - administracion;
+
+              // Enviar los resultados al frontend
+              res.json({
+                  importePeriodo,
+                  montoABL,
+                  administracion,
+                  total
+              });
+          });
+      });
+  });
 });
 
 
