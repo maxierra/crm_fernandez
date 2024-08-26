@@ -1,0 +1,279 @@
+<html><head><base href="">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolución de Caja Diaria Inmobiliaria</title>
+    <style>
+        :root {
+            --primary-color: #FF3E3E;
+            --secondary-color: #2C3E50;
+            --background-color: #FFFFFF;
+            --text-color: #34495E;
+            --accent-color: #E74C3C;
+            --button-color: #D9534F;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px; /* Aumentado de 500px */
+            width: 90%;
+            background-color: #F8F9FA;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 3em; /* Aumentado de 2.5em */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #balance {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: rgba(255, 62, 62, 0.1);
+            color: var(--primary-color);
+            padding: 10px 15px;
+            border-radius: 25px;
+            box-shadow: 0 0 10px rgba(255, 62, 62, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            background-color: rgba(255, 255, 255, 0.5);
+            color: var(--text-color);
+        }
+        
+        th {
+            background-color: rgba(255, 62, 62, 0.2);
+            color: var(--primary-color);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        tr {
+            transition: all 0.3s ease;
+        }
+        
+        tr:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .ingreso {
+            color: var(--primary-color);
+        }
+        
+        .egreso {
+            color: var(--accent-color);
+        }
+        
+        #addTransactionForm {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+        }
+        
+        .form-group {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        input, select {
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background-color: rgba(44, 62, 80, 0.1);
+            color: var(--text-color);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        button {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            align-self: flex-end;
+        }
+        
+        button:hover {
+            background-color: #C9302C;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 62, 62, 0.4);
+        }
+        
+    </style>
+    </head>
+    <body>
+
+         <!-- Incluir el navbar -->
+    <%- include('navbar') %>
+      <div class="container">
+        <h1>Evolución de Caja Diaria Inmobiliaria</h1>
+        <div id="balance">Balance: $0</div>
+        
+        <table id="transactionsTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Monto</th>
+              <th>Motivo</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Las transacciones se agregarán aquí dinámicamente -->
+          </tbody>
+        </table>
+    
+        <form id="addTransactionForm">
+          <div class="form-group">
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" required>
+              <option value="ingreso">Ingreso</option>
+              <option value="egreso">Egreso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="monto">Monto:</label>
+            <input type="number" id="monto" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="motivo">Motivo:</label>
+            <select id="motivo" required>
+              <option value="Alquiler">Cobro de Alquiler</option>
+              <option value="PagoPropietario">Pago a Propietario</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Comision">Comisión</option>
+              <option value="Impuestos">Impuestos</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <button type="submit">Agregar Transacción</button>
+        </form>
+      </div>
+    
+      <script>
+        let balance = 0;
+        const transactionsTable = document.getElementById('transactionsTable').getElementsByTagName('tbody')[0];
+        const balanceElement = document.getElementById('balance');
+        const addTransactionForm = document.getElementById('addTransactionForm');
+    
+        function updateBalance(amount, isIncome) {
+          if (isIncome) {
+            balance += amount;
+          } else {
+            balance -= amount;
+          }
+          balanceElement.textContent = `Balance: $${balance.toFixed(2)}`;
+          balanceElement.style.color = balance >= 0 ? '#00FF00' : '#FF6347';
+        }
+    
+        function addTransaction(date, type, amount, reason) {
+          const newRow = transactionsTable.insertRow(0);
+          const isIncome = type === 'ingreso';
+          updateBalance(amount, isIncome);
+          
+          newRow.innerHTML = `
+            <td>${date}</td>
+            <td class="${isIncome ? 'ingreso' : 'egreso'}">${isIncome ? 'Ingreso' : 'Egreso'}</td>
+            <td class="${isIncome ? 'ingreso' : 'egreso'}">$${amount.toFixed(2)}</td>
+            <td>${reason}</td>
+            <td>$${balance.toFixed(2)}</td>
+          `;
+    
+          newRow.style.opacity = '0';
+          newRow.style.transform = 'translateY(-20px)';
+          setTimeout(() => {
+            newRow.style.transition = 'all 0.5s ease';
+            newRow.style.opacity = '1';
+            newRow.style.transform = 'translateY(0)';
+          }, 50);
+        }
+    
+        addTransactionForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const tipo = document.getElementById('tipo').value;
+          const monto = parseFloat(document.getElementById('monto').value);
+          const motivo = document.getElementById('motivo').value;
+          const fecha = new Date().toLocaleString('es-ES', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          addTransaction(fecha, tipo, monto, motivo);
+          this.reset();
+        });
+    
+        // Simular algunas transacciones automáticas
+        function simulateAutomaticTransactions() {
+          const transactions = [
+            { date: '01/05/2023, 09:00', type: 'ingreso', amount: 1000, reason: 'Alquiler' },
+            { date: '05/05/2023, 14:30', type: 'egreso', amount: 800, reason: 'PagoPropietario' },
+            { date: '10/05/2023, 11:15', type: 'ingreso', amount: 1200, reason: 'Alquiler' },
+            { date: '15/05/2023, 16:45', type: 'egreso', amount: 950, reason: 'PagoPropietario' },
+          ];
+    
+          transactions.forEach((t, index) => {
+            setTimeout(() => {
+              addTransaction(t.date, t.type, t.amount, t.reason);
+            }, index * 1500);
+          });
+        }
+    
+        simulateAutomaticTransactions();
+      </script>
+    </body></html>

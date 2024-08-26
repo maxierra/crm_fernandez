@@ -1,0 +1,296 @@
+:root {
+    --primary-color: #FF3E3E;
+    --secondary-color: #2C3E50;
+    --background-color: #FFFFFF;
+    --text-color: #34495E;
+    --accent-color: #E74C3C;
+    --button-color: #D9534F;
+}
+
+body {
+    background-color: var(--background-color);
+    padding: 0;
+    margin: 0;
+}
+
+.container {
+    max-width: 800px; /* Aumentado de 500px */
+    width: 90%; /* Asegura que en pantallas más pequeñas, mantenga un margen */
+    margin: 20px auto;
+    padding: 30px; /* Aumentado para dar más espacio interno */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada para mayor profundidad */
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 3em; /* Aumentado de 2.5em */
+    margin-bottom: 5px;
+}
+
+h2 {
+    color: var(--secondary-color);
+    font-size: 1.8em;
+    font-weight: 400;
+    margin-top: 0;
+}
+
+.section.payment-details {
+    background-color: #F8F9FA;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 5px solid var(--primary-color);
+    margin-bottom: 30px;
+}
+
+.payment-details h2 {
+    color: var(--secondary-color);
+    font-size: 1.4em;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 1.2em; /* Ligeramente aumentado */
+}
+
+.detail-row.deduction {
+    color: var(--text-color);
+}
+
+.detail-row.deduction .amount {
+    color: var(--text-color);
+}
+
+.detail-row.total {
+    font-weight: 700;
+    font-size: 1.4em; /* Aumentado para destacar más */
+    color: var(--primary-color);
+    border-top: 2px solid var(--primary-color);
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.payment-method {
+    margin-top: 30px;
+}
+
+.payment-method h3 {
+    color: var(--secondary-color);
+    font-size: 1.4em;
+    margin-bottom: 15px;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: space-around; /* Cambiado de space-between para dar más espacio entre botones */
+    margin-top: 20px;
+}
+
+.btn {
+    background-color: var(--button-color);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 115%; /* Ajustado para que los botones sean un poco más anchos */
+}
+
+.btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+}
+
+.cbu {
+    background-color: #F8F9FA;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-family: 'Courier New', monospace;
+    border: 2px dashed var(--primary-color);
+    text-align: center;
+}
+
+#processPayment {
+    display: block;
+    width: 100%;
+    margin-top: 30px;
+    font-size: 1.3em; /* Aumentado */
+    background-color: var(--button-color);
+    padding: 18px; /* Aumentado */
+    border-radius: 5px;
+}
+
+#processPayment:hover {
+    background-color: var(--accent-color);
+}
+
+/* Ajustes responsivos para pantallas más pequeñas */
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2.5em;
+    }
+
+    body {
+        font-size: 16px;
+    }
+}
+:root {
+    --primary-color: #FF3E3E; /* Rojo brillante */
+    --secondary-color: #2C3E50; /* Gris oscuro */
+    --background-color: #FFFFFF; /* Blanco */
+    --text-color: #34495E; /* Gris medio */
+    --accent-color: #E74C3C; /* Rojo más oscuro para acentos */
+    --button-color: #D9534F; /* Rojo para botones */
+}
+
+body {
+    background-color: var(--background-color);
+    padding: 0;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif; /* Usar Montserrat para mayor consistencia */
+}
+
+.container {
+    max-width: 800px;
+    width: 90%;
+    margin: 20px auto;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 10px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+h2 {
+    color: var(--secondary-color);
+    font-size: 1.8em;
+    font-weight: 400;
+    margin-top: 0;
+}
+
+form#searchForm .form-control {
+    border-radius: 25px 0 0 25px;
+}
+
+form#searchForm .btn-primary {
+    background-color: var(--button-color);
+    border-radius: 0 25px 25px 0;
+    border: none;
+}
+
+form#searchForm .btn-primary:hover {
+    background-color: var(--accent-color);
+    border: none;
+}
+
+.payment-method {
+    margin-top: 30px;
+}
+
+.payment-method h2 {
+    color: var(--secondary-color);
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+.payment-options {
+    display: flex;
+    justify-content: space-around;
+}
+
+.payment-option {
+    background-color: var(--button-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 1.1em;
+    text-align: center;
+    flex: 1;
+    margin: 0 5px;
+}
+
+.payment-option.active {
+    background-color: var(--accent-color);
+}
+
+.payment-option:hover {
+    background-color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.cbu {
+    background-color: #F8F9FA;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-family: 'Courier New', monospace;
+    border: 2px dashed var(--primary-color);
+    text-align: center;
+}
+
+#processPayment {
+    display: block;
+    width: 100%;
+    margin-top: 30px;
+    font-size: 1.3em;
+    background-color: var(--button-color);
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#processPayment:hover {
+    background-color: var(--accent-color);
+}
+
+/* Ajustes responsivos para pantallas más pequeñas */
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2.5em;
+    }
+
+    body {
+        font-size: 16px;
+    }
+}
+

@@ -133,6 +133,11 @@ app.get('/reclamos', (req, res) => {
   res.render('reclamos'); // Renderiza el archivo 'reclamos.ejs'
 });
 
+app.get('/caja', (req, res) => {
+    res.render('caja'); // Renderiza el archivo 'caja.ejs'
+});
+
+
 app.get('/pagopropietarios', (req, res) => {
   res.render('pagopropietarios');
 });
@@ -623,17 +628,19 @@ app.get('/api/cobro-alquileres', (req, res) => {
 
 
 app.post('/buscar-propietario', (req, res) => {
-  const { propietario } = req.body;
+  let { propietario } = req.body;
 
   if (!propietario) {
       return res.status(400).json({ error: "Propietario es requerido" });
   }
 
-  const sqlAlquileres = `SELECT importe_periodo FROM cobro_alquileres WHERE propietario = ?`;
-  const sqlABL = `SELECT monto_abl FROM pagos_abl WHERE nombre = ?`;
-  const sqlComision = `SELECT comision FROM contratos WHERE propietario = ?`;
+  propietario = propietario.toLowerCase();
 
-  // Ejecutar las consultas
+  const sqlAlquileres = `SELECT importe_periodo FROM cobro_alquileres WHERE LOWER(propietario) = ?`;
+  const sqlABL = `SELECT monto_abl FROM pagos_abl WHERE LOWER(nombre) = ? ORDER BY periodo DESC LIMIT 1`;
+  const sqlComision = `SELECT comision FROM contratos WHERE LOWER(propietario) = ?`;
+  const sqlCBU = `SELECT cbu, observaciones FROM contratos WHERE LOWER(propietario) = ?`;
+
   db.all(sqlAlquileres, [propietario], (err, rowsAlquileres) => {
       if (err) {
           console.error("Error en la consulta SQL (Alquileres):", err.message);
@@ -652,28 +659,40 @@ app.post('/buscar-propietario', (req, res) => {
                   return res.status(500).json({ error: "Error en la consulta de base de datos (Comisión)" });
               }
 
-              // Obtener los valores
-              let importePeriodo = rowsAlquileres.length > 0 ? rowsAlquileres[0].importe_periodo : 0;
-              let montoABL = rowsABL.length > 0 ? rowsABL[0].monto_abl : 0;
-              let comision = rowComision ? rowComision.comision : 0;
+              db.get(sqlCBU, [propietario], (err, rowCBU) => {
+                  if (err) {
+                      console.error("Error en la consulta SQL (CBU):", err.message);
+                      return res.status(500).json({ error: "Error en la consulta de base de datos (CBU)" });
+                  }
 
-              // Calcular el valor de la administración
-              let administracion = (comision / 100) * importePeriodo;
+                  let importePeriodo = rowsAlquileres.length > 0 ? rowsAlquileres[0].importe_periodo : 0;
+                  let montoABL = rowsABL.length > 0 ? rowsABL[0].monto_abl : 0;
+                  let comision = rowComision ? rowComision.comision : 0;
+                  let cbu = rowCBU ? rowCBU.cbu : 'No disponible';
+                  let observaciones = rowCBU ? rowCBU.observaciones : ''; // Obtener observaciones
 
-              // Calcular el total a pagar al propietario
-              let total = importePeriodo - montoABL - administracion;
+                  let administracion = (comision / 100) * importePeriodo;
+                  let total = importePeriodo - montoABL - administracion;
 
-              // Enviar los resultados al frontend
-              res.json({
-                  importePeriodo,
-                  montoABL,
-                  administracion,
-                  total
+                  res.json({
+                      importePeriodo,
+                      montoABL,
+                      administracion,
+                      total,
+                      cbu,
+                      observaciones // Enviar observaciones al frontend
+                  });
               });
           });
       });
   });
 });
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,38 @@
+/* Estilo para los campos de entrada y selectores */
+input, select {
+    width: 100%; /* Ancho completo */
+    padding: 12px 20px; /* Espaciado interno */
+    margin: 8px 0; /* Espaciado entre campos */
+    display: inline-block; /* Permite que los elementos estén uno al lado del otro */
+    border: 1px solid #ccc; /* Color del borde */
+    border-radius: 4px; /* Bordes redondeados */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
+  }
+  
+  /* Estilo para el botón de envío */
+  input[type=submit] {
+      background-color: #4CAF50; /* Color de fondo */
+      color: white; /* Color del texto */
+      cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+  }
+  
+  /* Efecto hover para el botón de envío */
+  input[type=submit]:hover {
+      background-color: #45a049; /* Color de fondo al pasar el cursor */
+  }
+  
+  /* Mejora la apariencia de las tablas */
+  table {
+      border-collapse: collapse; /* Colapsa los bordes */
+      width: 100%; /* Ancho completo */
+  }
+  
+  th, td {
+      text-align: left; /* Alineación del texto a la izquierda */
+      padding: 8px; /* Espaciado interno */
+  }
+  
+  tr:nth-child(even) {
+      background-color: #f2f2f2; /* Color de fondo para filas pares */
+  }
+  

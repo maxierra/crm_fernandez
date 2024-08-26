@@ -1,0 +1,167 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to right, #990000, #330000);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 30px;
+}
+
+.container {
+    max-width: 1000px;
+    width: 95%;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+h1 {
+    color: #FFD700;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+h2 {
+    color: #FFD700;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 2em;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+form {
+    margin-bottom: 30px;
+}
+
+textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: #fff;    
+    padding: 15px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    width: 150%;
+}
+
+textarea::placeholder {
+    color: #ccc;
+}
+
+textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #FFD700;
+}
+
+button {
+    background-color: #FFD700;
+    color: #330000;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background-color: #FFA500;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.btn-secondary {
+    background-color: #555;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-secondary:hover {
+    background-color: #777;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.4);
+}
+
+.table-responsive {
+    margin-top: 20px;
+}
+
+table, th, td {
+    color: #fff; /* Texto en blanco para toda la tabla */
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff; /* Asegura que cada celda tenga texto en blanco */
+}
+
+th {
+    background-color: rgba(255, 215, 0, 0.2);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+tr {
+    transition: all 0.3s ease;
+}
+
+tr:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+#message {
+    text-align: center;
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+select {
+    padding: 12px;
+    border: none;
+    border-radius: 25px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #FFD700;
+}

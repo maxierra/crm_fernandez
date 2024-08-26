@@ -1,0 +1,178 @@
+:root {
+    --primary-color: #FF3E3E; /* Rojo brillante */
+    --secondary-color: #2C3E50; /* Gris oscuro */
+    --background-color: #FFFFFF; /* Blanco */
+    --text-color: #34495E; /* Gris medio */
+    --accent-color: #E74C3C; /* Rojo más oscuro para acentos */
+    --button-color: #D9534F; /* Rojo para botones */
+}
+
+body {
+    background-color: var(--background-color);
+    padding: 0;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif; /* Usar Montserrat para mayor consistencia */
+}
+
+.navbar {
+    background-color: var(--primary-color);
+}
+
+.navbar .navbar-brand, .navbar-nav .nav-link {
+    color: #ffffff !important;
+}
+
+.container {
+    max-width: 80%; /* Ajustado para mayor ancho */
+    width: 100%; /* Ajustado para mayor ancho */
+    margin: 20px auto;
+    padding: 40px; /* Aumentado para más espacio interno */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: 10px;
+    overflow-x: auto; /* Para permitir el desbordamiento horizontal en caso de necesidad */
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 3.5em; /* Aumentado para mayor impacto */
+    margin-bottom: 10px;
+}
+
+h2 {
+    color: var(--secondary-color);
+    font-size: 1.8em;
+    font-weight: 400;
+    margin-top: 0;
+}
+
+form#search-form {
+    display: flex;
+    align-items: center;
+    border-radius: 25px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+form#search-form .form-control {
+    border-radius: 25px 0 0 25px;
+}
+
+form#search-form .btn-danger {
+    background-color: var(--button-color);
+    border-radius: 0 25px 25px 0;
+    border: none;
+    padding: 12px 20px;
+}
+
+form#search-form .btn-danger:hover {
+    background-color: var(--accent-color);
+    border: none;
+}
+
+.table {
+    width: 100%; /* Ajustado para el ancho completo del contenedor */
+    margin-top: 20px;
+    border-radius: 10px;
+    overflow-x: auto; /* Permitir desplazamiento horizontal si es necesario */
+}
+
+.table th, .table td {
+    font-size: 1.2em; /* Aumentado para mejor legibilidad */
+}
+
+.table thead th {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.total-container {
+    background-color: #F8F9FA;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-size: 1.2em;
+    border: 2px dashed var(--primary-color);
+    text-align: center;
+}
+
+#total-amount {
+    font-size: 1.5em; /* Aumentado para destacar más */
+    font-weight: bold; /* Enfatizado con negrita */
+    color: var(--primary-color);
+}
+
+.user-select-container {
+    margin-top: 30px;
+}
+
+.user-select label {
+    font-size: 1.2em; /* Tamaño de fuente ajustado */
+    margin-right: 10px;
+}
+
+.payment-methods {
+    margin-top: 20px;
+}
+
+.payment-methods .form-check {
+    font-size: 1.2em; /* Tamaño de fuente ajustado */
+    margin-bottom: 10px;
+}
+
+.payment-methods .form-check-input {
+    margin-right: 10px;
+}
+
+#manual-inputs .form-label {
+    margin-bottom: 5px;
+}
+
+#manual-inputs .form-control {
+    margin-bottom: 15px;
+}
+
+.submit-container {
+    margin-top: 40px;
+}
+
+.submit-container .btn-success {
+    background-color: var(--button-color);
+    border-radius: 5px;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1.2em;
+}
+
+.submit-container .btn-success:hover {
+    background-color: var(--accent-color);
+}
+
+/* Ajustes responsivos para pantallas más pequeñas */
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2.5em;
+    }
+
+    body {
+        font-size: 16px;
+    }
+
+    .table th, .table td {
+        font-size: 1em; /* Reducido para pantallas más pequeñas */
+    }
+
+    form#search-form .btn-danger {
+        padding: 10px 15px;
+    }
+}
