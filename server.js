@@ -689,8 +689,19 @@ app.post('/buscar-propietario', (req, res) => {
 });
 
 
+app.post('/procesar-pago', (req, res) => {
+  const { propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago } = req.body;
 
-
+  db.run('INSERT INTO pago_propietarios (propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+      [propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago], 
+      (error) => {
+          if (error) {
+              res.status(500).json({ mensaje: 'Error al insertar datos' });
+          } else {
+              res.json({ mensaje: 'Datos insertados con éxito' });
+          }
+      });
+});
 
 
 

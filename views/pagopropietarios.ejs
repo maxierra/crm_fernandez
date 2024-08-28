@@ -1,135 +1,556 @@
 <!DOCTYPE html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pago a Propietarios - Elegante</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/pagoalquiler.css" />
-</head>
+    <style>
+      .invoice {
+        font-family: "Montserrat", sans-serif;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+      }
 
-<body>
+      .invoice h1 {
+        color: #333;
+      }
+
+      .invoice p {
+        margin: 5px 0;
+      }
+
+      .invoice .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .invoice .details {
+        margin-top: 20px;
+      }
+
+      .invoice .details p {
+        margin: 10px 0;
+      }
+
+      .invoice .footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #999;
+      }
+    </style>
+  </head>
+
+  <body>
     <%- include('navbar') %>
     <div class="container">
-        <div class="header">
-            <h1>Pago a Propietarios</h1>
+      <div class="header">
+        <h1>Pago a Propietarios</h1>
+      </div>
+      <div class="content">
+        <!-- Formulario de Búsqueda por Propietario -->
+        <form id="searchForm" class="form-inline mb-4 animate">
+          <div class="input-group w-100">
+            <input
+              type="text"
+              id="propietario"
+              name="propietario"
+              class="form-control"
+              placeholder="Buscar propietario"
+              required
+            />
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Resultado de la búsqueda -->
+        <div id="resultado" class="animate" style="animation-delay: 0.2s">
+          <!-- Aquí se mostrará el resultado de la búsqueda -->
         </div>
-        <div class="content">
-            <!-- Formulario de Búsqueda por Propietario -->
-            <form id="searchForm" class="form-inline mb-4 animate">
-                <div class="input-group w-100">
-                    <input type="text" id="propietario" name="propietario" class="form-control" placeholder="Buscar propietario" required>
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                    </div>
-                </div>
-            </form>
 
-            <!-- Resultado de la búsqueda -->
-            <div id="resultado" class="animate" style="animation-delay: 0.2s;">
-                <!-- Aquí se mostrará el resultado de la búsqueda -->
+        <div
+          class="section payment-method animate"
+          style="animation-delay: 0.4s"
+        >
+          <h2>Método de Pago</h2>
+          <div class="payment-options">
+            <div class="payment-option active" data-method="efectivo">
+              Efectivo
             </div>
-
-            <div class="section payment-method animate" style="animation-delay: 0.4s;">
-                <h2>Método de Pago</h2>
-                <div class="payment-options">
-                    <div class="payment-option active" data-method="efectivo">Efectivo</div>
-                    <div class="payment-option" data-method="transferencia">Transferencia</div>
-                </div>
+            <div class="payment-option" data-method="transferencia">
+              Transferencia
             </div>
-
-            <div id="cbu" class="cbu animate" style="animation-delay: 0.6s;">
-                <p>CBU para transferencia: <span id="cbuNumber">No disponible</span></p>
-                <p id="observaciones"></p> <!-- Nuevo párrafo para observaciones -->
-            </div>
-            
-            <button id="processPayment" class="animate" style="animation-delay: 1s;">Procesar Pago</button>
+          </div>
         </div>
+
+        <div id="cbu" class="cbu animate" style="animation-delay: 0.6s">
+          <p>
+            CBU para transferencia: <span id="cbuNumber">No disponible</span>
+          </p>
+          <p id="observaciones"></p>
+          <!-- Nuevo párrafo para observaciones -->
+        </div>
+
+        <button id="processPayment" class="animate" style="animation-delay: 1s">
+          Procesar Pago
+        </button>
+      </div>
     </div>
 
+    <!-- Modal de Confirmación de Impresión -->
+    <div
+      class="modal fade"
+      id="printConfirmationModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="printConfirmationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="printConfirmationModalLabel">
+              Confirmación de Impresión
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">¿Desea imprimir el comprobante?</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="printNo">
+              No
+            </button>
+            <button type="button" class="btn btn-primary" id="printYes">
+              Sí
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Detalles del Pago -->
+    <div
+      class="modal fade"
+      id="paymentDetailsModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="paymentDetailsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentDetailsModalLabel">
+              Detalles del Pago
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="paymentDetailsBody">
+            <!-- Aquí se mostrarán los detalles del pago -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="downloadPDF">
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Pago Registrado con Éxito -->
+    <div
+      class="modal fade"
+      id="successModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="successModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="successModalLabel">Éxito</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">El pago ha sido registrado con éxito.</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
-       // Código de búsqueda del propietario
-    document.getElementById('searchForm').addEventListener('submit', function (event) {
-        event.preventDefault();
+      // Código de búsqueda del propietario
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
 
-        const propietario = document.getElementById('propietario').value;
+          const propietario = document.getElementById("propietario").value;
 
-        fetch('/buscar-propietario', {
-            method: 'POST',
+          fetch("/buscar-propietario", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify({ propietario: propietario })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(error => {
-                        throw new Error(error.message || 'Error desconocido');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                const resultadoDiv = document.getElementById('resultado');
-                let resultHtml = '';
-
-                if (data.error) {
-                    resultHtml += `<p class="text-danger">Error: ${data.error}</p>`;
-                } else {
-                    resultHtml += `<div class="section payment-details animate" style="animation-delay: 0.2s;">`;
-                    resultHtml += `<h2>Detalle de Pagos</h2>`;
-                    resultHtml += `<div class="detail-row">`;
-                    resultHtml += `<span>Importe del periodo:</span><span>$${data.importePeriodo.toFixed(2)}</span>`;
-                    resultHtml += `</div>`;
-                    resultHtml += `<div class="detail-row deduction">`;
-                    resultHtml += `<span>Monto ABL:</span><span>-$${data.montoABL.toFixed(2)}</span>`;
-                    resultHtml += `</div>`;
-                    resultHtml += `<div class="detail-row deduction">`;
-                    resultHtml += `<span>Administración :</span><span>-$${data.administracion.toFixed(2)}</span>`;
-                    resultHtml += `</div>`;
-                    resultHtml += `<div class="detail-row total">`;
-                    resultHtml += `<span>Total:</span><span>$${data.total.toFixed(2)}</span>`;
-                    resultHtml += `</div>`;
-                    resultHtml += `</div>`;
-
-                    document.getElementById('cbuNumber').textContent = data.cbu;
-                    document.getElementById('observaciones').textContent = data.observaciones || ''; // Mostrar observaciones
-                }
-
-                resultadoDiv.innerHTML = resultHtml;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('resultado').innerHTML = `<p class="text-danger">Error en la respuesta del servidor: ${error.message}</p>`;
-            });
-    });
-        document.addEventListener('DOMContentLoaded', function () {
-            const paymentOptions = document.querySelectorAll('.payment-option');
-            const cbuDiv = document.getElementById('cbu');
-            const processButton = document.getElementById('processPayment');
-
-            paymentOptions.forEach(option => {
-                option.addEventListener('click', function () {
-                    paymentOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-
-                    if (this.dataset.method === 'transferencia') {
-                        cbuDiv.style.display = 'block';
-                    } else {
-                        cbuDiv.style.display = 'none';
-                    }
+            body: JSON.stringify({ propietario: propietario }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                return response.json().then((error) => {
+                  throw new Error(error.message || "Error desconocido");
                 });
-            });
+              }
+              return response.json();
+            })
+            .then((data) => {
+              const resultadoDiv = document.getElementById("resultado");
+              let resultHtml = "";
 
-            processButton.addEventListener('click', function () {
-                const selectedMethod = document.querySelector('.payment-option.active').dataset.method;
-                alert(`Pago procesado con método: ${selectedMethod}`);
-                // Aquí podrías agregar el código para procesar el pago en el backend
+              if (data.error) {
+                resultHtml += `<p class="text-danger">Error: ${data.error}</p>`;
+              } else {
+                resultHtml += `<div class="section payment-details animate" style="animation-delay: 0.2s;">`;
+                resultHtml += `<h2>Detalle de Pagos</h2>`;
+                resultHtml += `<div class="detail-row">`;
+                resultHtml += `<span>Importe del periodo:</span><span>$${data.importePeriodo.toFixed(
+                  2
+                )}</span>`;
+                resultHtml += `</div>`;
+                resultHtml += `<div class="detail-row deduction">`;
+                resultHtml += `<span>Monto ABL:</span><span>-$${data.montoABL.toFixed(
+                  2
+                )}</span>`;
+                resultHtml += `</div>`;
+                resultHtml += `<div class="detail-row deduction">`;
+                resultHtml += `<span>Administración :</span><span>-$${data.administracion.toFixed(
+                  2
+                )}</span>`;
+                resultHtml += `</div>`;
+                resultHtml += `<div class="detail-row total">`;
+                resultHtml += `<span>Total:</span><span>$${data.total.toFixed(
+                  2
+                )}</span>`;
+                resultHtml += `</div>`;
+                resultHtml += `</div>`;
+
+                document.getElementById("cbuNumber").textContent = data.cbu;
+                document.getElementById("observaciones").textContent =
+                  data.observaciones || ""; // Mostrar observaciones
+              }
+
+              resultadoDiv.innerHTML = resultHtml;
+
+              // Guardar los datos obtenidos en una variable global para su uso posterior
+              window.paymentData = data;
+              window.paymentData.propietarioNombre = propietario; // Guardar el nombre del propietario
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              document.getElementById(
+                "resultado"
+              ).innerHTML = `<p class="text-danger">Error en la respuesta del servidor: ${error.message}</p>`;
             });
         });
-    </script>
-</body>
 
+      document.addEventListener("DOMContentLoaded", function () {
+        const paymentOptions = document.querySelectorAll(".payment-option");
+        const cbuDiv = document.getElementById("cbu");
+        const processButton = document.getElementById("processPayment");
+
+        paymentOptions.forEach((option) => {
+          option.addEventListener("click", function () {
+            paymentOptions.forEach((opt) => opt.classList.remove("active"));
+            this.classList.add("active");
+
+            if (this.dataset.method === "transferencia") {
+              cbuDiv.style.display = "block";
+            } else {
+              cbuDiv.style.display = "none";
+            }
+          });
+        });
+
+        processButton.addEventListener("click", function () {
+          // Asegúrate de que la variable global paymentData esté definida
+          if (!window.paymentData) {
+            console.error("Los datos del pago no están disponibles.");
+            return;
+          }
+
+          // Mostrar el modal de confirmación de impresión
+          $("#printConfirmationModal").modal("show");
+        });
+
+        document
+          .getElementById("printNo")
+          .addEventListener("click", function () {
+            // Guardar los datos en la base de datos
+            savePaymentData();
+            // Mostrar el modal de éxito
+            $("#successModal").modal("show");
+            // Cerrar el modal de confirmación de impresión
+            $("#printConfirmationModal").modal("hide");
+          });
+
+        document
+          .getElementById("printYes")
+          .addEventListener("click", function () {
+            // Mostrar los detalles del pago en el modal
+            const paymentDetailsBody =
+              document.getElementById("paymentDetailsBody");
+            const data = window.paymentData;
+            const fechaHoy = new Date().toLocaleDateString();
+
+            paymentDetailsBody.innerHTML = `
+                    <div class="invoice">
+                        <div class="header">
+                            <h1>Inmobiliaria Fernández López</h1>
+                            <p>Fecha: ${fechaHoy}</p>
+                            <p>Dirección: Congreso 4015, CABA, Coghan</p>
+                        </div>
+                        <div class="details">
+                            <p>Propietario: ${data.propietarioNombre}</p>
+                            <p>Importe del periodo: $${data.importePeriodo.toFixed(
+                              2
+                            )}</p>
+                            <p>Monto ABL: -$${data.montoABL.toFixed(2)}</p>
+                            <p>Administración: -$${data.administracion.toFixed(
+                              2
+                            )}</p>
+                            <p>Total: $${data.total.toFixed(2)}</p>
+                        </div>
+                        <div class="footer">
+                            <p>Gracias por su pago.</p>
+                        </div>
+                    </div>
+                `;
+            // Mostrar el modal de detalles del pago
+            $("#paymentDetailsModal").modal("show");
+            // Cerrar el modal de confirmación de impresión
+            $("#printConfirmationModal").modal("hide");
+          });
+
+        document
+          .getElementById("downloadPDF")
+          .addEventListener("click", function () {
+            // Generar y descargar el PDF
+            const data = window.paymentData;
+            const fechaHoy = new Date().toLocaleDateString();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Ruta de la imagen (debe estar accesible desde la raíz del servidor)
+            const logoURL = "images/logo.jpg"; // La ruta relativa a la carpeta 'public/images'
+
+            // Añadir el logo en la parte superior derecha
+            const logoWidth = 60; // Ajusta el tamaño del logo
+            const logoHeight = 40; // Ajusta el tamaño del logo
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const logoX = pageWidth - logoWidth - 10; // Posición a la derecha con margen
+            doc.addImage(logoURL, "JPEG", logoX, 10, logoWidth, logoHeight);
+
+            // Ajustar la posición del encabezado para no superponerse con el logo
+            const headerY = 55; // Y de la parte superior del recuadro, bajado para dejar espacio al logo
+            const headerWidth = 190;
+            const headerHeight = 40; // Altura del recuadro
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text(
+              "Inmobiliaria Fernández López",
+              pageWidth / 2,
+              headerY + 10,
+              { align: "center" }
+            ); // Centrado
+
+            // Crear un recuadro para la información de la inmobiliaria
+            doc.setDrawColor(0, 0, 0); // Color negro para el borde
+            doc.rect(10, headerY, headerWidth, headerHeight); // Rectángulo alrededor del encabezado
+
+            // Información de la inmobiliaria
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Fecha: ${fechaHoy}`, 15, headerY + 15);
+            doc.text(
+              "Dirección: Congreso 4015, CABA, Coghan",
+              15,
+              headerY + 25
+            );
+            doc.text("Email: flpropiedades@yahoo.com.ar", 15, headerY + 35); // Añadir el email dentro del recuadro
+
+            // Nombre del propietario con espacio adicional
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text(
+              `Propietario: ${data.propietarioNombre}`,
+              15,
+              headerY + 55
+            ); // Bajado 3-4 líneas de espacio
+
+            // Información de la factura con líneas punteadas y montos alineados a la derecha
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            const detailsY = headerY + 70; // Ajusta la Y para los detalles
+            const rightAlignX = pageWidth - 15; // X para alinear a la derecha
+
+            // Función para añadir texto con líneas punteadas
+            function addLinedText(text, amount, y) {
+              const textWidth = doc.getTextWidth(text);
+              const amountWidth = doc.getTextWidth(amount);
+              const dottedLineStartX = 15 + textWidth + 2;
+              const dottedLineEndX = rightAlignX - amountWidth - 2;
+              const dottedLineY = y + 2; // Ajuste vertical para alinear con el texto
+
+              doc.text(text, 15, y);
+              doc.setLineWidth(0.5);
+              doc.setLineDashPattern([2, 2]);
+              doc.line(
+                dottedLineStartX,
+                dottedLineY,
+                dottedLineEndX,
+                dottedLineY
+              ); // Línea punteada
+              doc.text(amount, rightAlignX - amountWidth, y); // Monto alineado a la derecha
+            }
+
+            addLinedText(
+              "Importe del periodo:",
+              `$${data.importePeriodo.toFixed(2)}`,
+              detailsY
+            );
+            addLinedText(
+              "Monto ABL:",
+              `-$${data.montoABL.toFixed(2)}`,
+              detailsY + 10
+            );
+            addLinedText(
+              "Administración:",
+              `-$${data.administracion.toFixed(2)}`,
+              detailsY + 20
+            );
+
+            // Total en negrita, más grande, y centrado
+            doc.setFontSize(16); // Aumenta el tamaño de la fuente
+            doc.setFont("helvetica", "bold");
+            doc.text(
+              `Total: $${data.total.toFixed(2)}`,
+              pageWidth / 2,
+              detailsY + 35,
+              { align: "center" }
+            );
+
+            // Añadir líneas punteadas
+            doc.setLineWidth(0.5);
+            doc.setDrawColor(0, 0, 0); // Color negro para las líneas
+            doc.setLineDashPattern([2, 2]); // Patrón de línea punteada
+            doc.line(15, detailsY + 40, pageWidth - 15, detailsY + 40); // Línea punteada
+
+            // Mensaje final centrado
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            const messageY = detailsY + 55; // Ajusta la Y para el mensaje
+            doc.text("Gracias por su pago.", pageWidth / 2, messageY, {
+              align: "center",
+            });
+
+            doc.save("comprobante_pago.pdf");
+
+            // Guardar los datos en la base de datos
+            savePaymentData();
+            // Mostrar el modal de éxito
+            $("#successModal").modal("show");
+            // Cerrar el modal de detalles del pago
+            $("#paymentDetailsModal").modal("hide");
+          });
+      });
+
+      function savePaymentData() {
+        const selectedMethod = document.querySelector(".payment-option.active")
+          .dataset.method;
+        const cbuNumber = document.getElementById("cbuNumber").textContent;
+        const propietario = window.paymentData.propietarioNombre;
+        const importe_periodo = window.paymentData.importePeriodo;
+        const monto_abl = window.paymentData.montoABL;
+        const administracion = window.paymentData.administracion;
+        const total = window.paymentData.total;
+
+        // Obtener la fecha actual en formato YYYY-MM-DD
+        const fecha_pago = new Date().toISOString().split("T")[0];
+
+        fetch("/procesar-pago", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            propietario: propietario,
+            importe_periodo: importe_periodo,
+            monto_abl: monto_abl,
+            administracion: administracion,
+            total: total,
+            metodo_pago: selectedMethod,
+            cbu: cbuNumber,
+            fecha_pago: fecha_pago, // Enviar la fecha de pago al backend
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              return response.json().then((error) => {
+                throw new Error(error.message || "Error desconocido");
+              });
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    </script>
+
+    <!-- Scripts de Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
 </html>
