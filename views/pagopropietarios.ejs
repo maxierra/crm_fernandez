@@ -368,130 +368,80 @@
             $("#printConfirmationModal").modal("hide");
           });
 
-        document
-          .getElementById("downloadPDF")
+       
+          document.getElementById("downloadPDF")
           .addEventListener("click", function () {
-            // Generar y descargar el PDF
+           
+
             const data = window.paymentData;
             const fechaHoy = new Date().toLocaleDateString();
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-
-            // Ruta de la imagen (debe estar accesible desde la raíz del servidor)
-            const logoURL = "images/logo.jpg"; // La ruta relativa a la carpeta 'public/images'
-
-            // Añadir el logo en la parte superior derecha
-            const logoWidth = 60; // Ajusta el tamaño del logo
-            const logoHeight = 40; // Ajusta el tamaño del logo
+            
             const pageWidth = doc.internal.pageSize.getWidth();
-            const logoX = pageWidth - logoWidth - 10; // Posición a la derecha con margen
-            doc.addImage(logoURL, "JPEG", logoX, 10, logoWidth, logoHeight);
-
-            // Ajustar la posición del encabezado para no superponerse con el logo
-            const headerY = 55; // Y de la parte superior del recuadro, bajado para dejar espacio al logo
-            const headerWidth = 190;
-            const headerHeight = 40; // Altura del recuadro
-            doc.setFontSize(16);
-            doc.setFont("helvetica", "bold");
-            doc.text(
-              "Inmobiliaria Fernández López",
-              pageWidth / 2,
-              headerY + 10,
-              { align: "center" }
-            ); // Centrado
-
-            // Crear un recuadro para la información de la inmobiliaria
-            doc.setDrawColor(0, 0, 0); // Color negro para el borde
-            doc.rect(10, headerY, headerWidth, headerHeight); // Rectángulo alrededor del encabezado
-
-            // Información de la inmobiliaria
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Fecha: ${fechaHoy}`, 15, headerY + 15);
-            doc.text(
-              "Dirección: Congreso 4015, CABA, Coghan",
-              15,
-              headerY + 25
-            );
-            doc.text("Email: flpropiedades@yahoo.com.ar", 15, headerY + 35); // Añadir el email dentro del recuadro
-
-            // Nombre del propietario con espacio adicional
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            // Colores
+            const textColor = [80, 80, 80];
+            const lightGrey = [200, 200, 200];
+            const logoRed = [255, 69, 0];
+            
+            // Función auxiliar para agregar texto
+            function addText(text, x, y, fontSize = 10, fontStyle = "normal", options = {}) {
+              doc.setFontSize(fontSize);
+              doc.setFont("helvetica", fontStyle);
+              doc.setTextColor(...textColor);
+              doc.text(text, x, y, options);
+            }
+            
+            // Logo en rojo similar al primer código
+            doc.setFillColor(...logoRed);
+            doc.circle(pageWidth - 25, 20, 10, "F");
+            doc.setTextColor(255, 255, 255); // Texto blanco para contraste
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
-            doc.text(
-              `Propietario: ${data.propietarioNombre}`,
-              15,
-              headerY + 55
-            ); // Bajado 3-4 líneas de espacio
-
-            // Información de la factura con líneas punteadas y montos alineados a la derecha
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            const detailsY = headerY + 70; // Ajusta la Y para los detalles
-            const rightAlignX = pageWidth - 15; // X para alinear a la derecha
-
+            doc.text("FL", pageWidth - 25, 20, { align: "center", baseline: "middle" });
+            
+            // Encabezado
+            addText("Inmobiliaria Fernández López", 10, 20, 16, "bold");
+            addText(`Fecha: ${fechaHoy}`, 10, 30, 10);
+            addText("Dirección: Congreso 4015, CABA, Coghan", 10, 35, 10);
+            addText("Email: flpropiedades@yahoo.com.ar", 10, 40, 10);
+            
+            // Información del propietario
+            addText(`Propietario: ${data.propietarioNombre}`, 10, 55, 14, "bold");
+            
             // Función para añadir texto con líneas punteadas
             function addLinedText(text, amount, y) {
               const textWidth = doc.getTextWidth(text);
               const amountWidth = doc.getTextWidth(amount);
               const dottedLineStartX = 15 + textWidth + 2;
-              const dottedLineEndX = rightAlignX - amountWidth - 2;
-              const dottedLineY = y + 2; // Ajuste vertical para alinear con el texto
-
-              doc.text(text, 15, y);
+              const dottedLineEndX = pageWidth - amountWidth - 25;
+              const dottedLineY = y + 2;
+            
+              addText(text, 15, y);
               doc.setLineWidth(0.5);
               doc.setLineDashPattern([2, 2]);
-              doc.line(
-                dottedLineStartX,
-                dottedLineY,
-                dottedLineEndX,
-                dottedLineY
-              ); // Línea punteada
-              doc.text(amount, rightAlignX - amountWidth, y); // Monto alineado a la derecha
+              doc.line(dottedLineStartX, dottedLineY, dottedLineEndX, dottedLineY);
+              addText(amount, pageWidth - 25, y, 10, "normal", { align: "right" });
             }
-
-            addLinedText(
-              "Importe del periodo:",
-              `$${data.importePeriodo.toFixed(2)}`,
-              detailsY
-            );
-            addLinedText(
-              "Monto ABL:",
-              `-$${data.montoABL.toFixed(2)}`,
-              detailsY + 10
-            );
-            addLinedText(
-              "Administración:",
-              `-$${data.administracion.toFixed(2)}`,
-              detailsY + 20
-            );
-
-            // Total en negrita, más grande, y centrado
-            doc.setFontSize(16); // Aumenta el tamaño de la fuente
-            doc.setFont("helvetica", "bold");
-            doc.text(
-              `Total: $${data.total.toFixed(2)}`,
-              pageWidth / 2,
-              detailsY + 35,
-              { align: "center" }
-            );
-
-            // Añadir líneas punteadas
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(0, 0, 0); // Color negro para las líneas
-            doc.setLineDashPattern([2, 2]); // Patrón de línea punteada
-            doc.line(15, detailsY + 40, pageWidth - 15, detailsY + 40); // Línea punteada
-
+            
+            // Detalles del comprobante
+            addLinedText("Importe del periodo:", `$${data.importePeriodo.toFixed(2)}`, 75);
+            addLinedText("Monto ABL:", `-$${data.montoABL.toFixed(2)}`, 85);
+            addLinedText("Administración:", `-$${data.administracion.toFixed(2)}`, 95);
+            
+            // Total
+            addText(`Total: $${data.total.toFixed(2)}`, pageWidth / 2, 110, 16, "bold", { align: "center" });
+            
             // Mensaje final centrado
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            const messageY = detailsY + 55; // Ajusta la Y para el mensaje
-            doc.text("Gracias por su pago.", pageWidth / 2, messageY, {
-              align: "center",
-            });
+            addText("Gracias por su pago.", pageWidth / 2, 130, 10, "normal", { align: "center" });
+            
+            doc.save(`pago_a_propietario_${data.propietarioNombre.replace(/\s+/g, '_')}_${fechaHoy.replace(/\//g, '-')}.pdf`);
+            
 
-            doc.save("comprobante_pago.pdf");
+
+
 
             // Guardar los datos en la base de datos
             savePaymentData();

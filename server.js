@@ -613,18 +613,37 @@ app.get('/api/cobro-alquileres', (req, res) => {
 
     const created_at = new Date(); // Fecha y hora actual
 
-    const sql = `
-        INSERT INTO cobro_alquileres (inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    // Verificar si ya existe un cobro para el mismo inquilino, propietario y período
+    const checkSql = `
+        SELECT COUNT(*) AS count FROM cobro_alquileres
+        WHERE inquilino = ? AND propietario = ? AND periodo = ?
     `;
 
-    db.run(sql, [inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at], function (err) {
+    db.get(checkSql, [inquilino, propietario, periodo], (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        res.json({ message: 'Cobro registrado exitosamente', id: this.lastID });
+
+        if (row.count > 0) {
+            // Si ya existe un cobro, retorna un error
+            return res.status(400).json({ error: 'Ya existe un cobro registrado para este período.' });
+        }
+
+        // Si no existe un cobro duplicado, proceder con la inserción
+        const sql = `
+            INSERT INTO cobro_alquileres (inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(sql, [inquilino, propietario, calle, nro, dto, periodo, importe_periodo, expensas_comunes, expensas_extraordinarias, estado1, estado2, user_id, payment_method, created_at], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: 'Cobro registrado exitosamente', id: this.lastID });
+        });
     });
 });
+
 
 
 app.post('/buscar-propietario', (req, res) => {
@@ -692,16 +711,27 @@ app.post('/buscar-propietario', (req, res) => {
 app.post('/procesar-pago', (req, res) => {
   const { propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago } = req.body;
 
+  // Primero inserta los datos del pago
   db.run('INSERT INTO pago_propietarios (propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
       [propietario, importe_periodo, monto_abl, administracion, total, metodo_pago, cbu, fecha_pago], 
       (error) => {
           if (error) {
-              res.status(500).json({ mensaje: 'Error al insertar datos' });
-          } else {
-              res.json({ mensaje: 'Datos insertados con éxito' });
+              return res.status(500).json({ mensaje: 'Error al insertar datos' });
           }
+
+          // Si la inserción fue exitosa, actualiza el estado en la tabla cobro_alquileres
+          const sqlUpdate = `UPDATE cobro_alquileres SET estado2 = 'alquiler pagado' WHERE LOWER(propietario) = ? AND estado2 = 'pendiente de rendición'`;
+          
+          db.run(sqlUpdate, [propietario.toLowerCase()], (error) => {
+              if (error) {
+                  return res.status(500).json({ mensaje: 'Error al actualizar el estado del alquiler' });
+              }
+
+              res.json({ mensaje: 'Datos insertados y estado actualizado con éxito' });
+          });
       });
 });
+
 
 
 
