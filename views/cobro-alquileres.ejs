@@ -1,171 +1,267 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
+<html>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cobro de Alquileres</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/css/cobro-alquileresstyles.css" />
-  </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
-      <%- include('navbar') %>
-    </nav>
-    <div class="container mt-5">
-      <div class="custom-header">
-        <h1 class="text-center mb-0">Cobro de Alquileres</h1>
-      </div>
-
-      <form id="search-form" class="mb-4 rounded shadow-sm p-3">
-        <div class="input-group">
-          <input
-            type="text"
-            id="search-input"
-            class="form-control"
-            placeholder="Buscar por inquilino"
-            aria-label="Buscar por inquilino"
-          />
-          <button class="btn btn-danger" type="submit">Buscar</button>
-        </div>
-      </form>
-
-      <div id="table-container" style="display: none">
-        <table class="table table-bordered rounded shadow-sm">
-          <thead>
-            <tr>
-              <th>Inquilino</th>
-              <th>Propietario</th>
-              <th>Calle</th>
-              <th>Número</th>
-              <th>Departamento</th>
-              <th>Importe del Periodo</th>
-              <th>Expensas Comunes</th>
-              <th>Expensas Extraordinarias</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-          </tbody>
-        </table>
-
-        <div id="total-container" class="total-container">
-          <span>Total a Cobrar: $<span id="total-amount">0.00</span></span>
-        </div>
-
-        <div id="user-select-container" class="user-select-container">
-          <div class="user-select">
-            <label for="user-select">Cobro realizado por:</label>
-            <select id="user-select"></select>
-          </div>
-          <div class="payment-methods">
-            <div class="form-check form-switch">
-              <input
-                class="form-check-input"
-                type="radio"
-                name="payment-method"
-                id="cash-payment"
-                value="efectivo"
-              />
-              <label class="form-check-label" for="cash-payment">
-                Efectivo
-              </label>
+    <title>Sistema de Gestión de Inquilinos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <style>
+        /* Estilos adicionales aquí */
+    </style>
+</head>
+<body>
+    <%- include('navbar') %>
+    <div class="container animated fadeIn">
+        <h1><i class="fas fa-search"></i> Cobro de alquiler</h1>
+        <form id="buscarInquilinoForm">
+            <div class="form-group">
+                <label for="nombreInquilino"><i class="fas fa-user"></i> Nombre del Inquilino</label>
+                <input type="text" class="form-control" id="nombreInquilino" placeholder="Ingrese el nombre del inquilino" required>
             </div>
-            <div class="form-check form-switch">
-              <input
-                class="form-check-input"
-                type="radio"
-                name="payment-method"
-                id="transfer-payment"
-                value="transferencia"
-              />
-              <label class="form-check-label" for="transfer-payment">
-                Transferencia
-              </label>
+            <div class="form-group">
+                <label for="usuarioCobro"><i class="fas fa-user-tie"></i> Usuario que realiza el cobro</label>
+                <select class="form-control" id="usuarioCobro" required>
+                    <!-- Los usuarios se cargarán dinámicamente desde la base de datos -->
+                </select>
             </div>
-          </div>
+            <div class="form-group">
+                <label for="periodoCobrar"><i class="far fa-calendar-alt"></i> Período a Cobrar</label>
+                <input type="date" class="form-control" id="periodoCobrar" required />
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-money-bill-wave"></i> Método de Pago</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="metodoPagoEfectivo" value="efectivo">
+                    <label class="form-check-label" for="metodoPagoEfectivo">Efectivo</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="metodoPagoTransferencia" value="transferencia">
+                    <label class="form-check-label" for="metodoPagoTransferencia">Transferencia</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search"></i> Buscar</button>
+        </form>
+        <div id="resultado" class="mt-4"></div>
+        <div id="procesarCobroSection" class="text-center" style="display: none;">
+            <button id="procesarCobroBtn" class="btn btn-success btn-lg"><i class="fas fa-check-circle"></i> Procesar Cobro</button>
         </div>
-
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="preferential-treatment" />
-          <label class="form-check-label" for="preferential-treatment">
-            Trato Preferencial
-          </label>
-        </div>
-
-        <div id="manual-inputs" style="display: none;">
-          <div class="mb-3">
-            <label for="manual-importe-periodo" class="form-label">Importe del Periodo</label>
-            <input type="number" class="form-control" id="manual-importe-periodo" />
-          </div>
-          <div class="mb-3">
-            <label for="manual-expensas-comunes" class="form-label">Expensas Comunes</label>
-            <input type="number" class="form-control" id="manual-expensas-comunes" />
-          </div>
-          <div class="mb-3">
-            <label for="manual-expensas-extraordinarias" class="form-label">Expensas Extraordinarias</label>
-            <input type="number" class="form-control" id="manual-expensas-extraordinarias" />
-          </div>
-        </div>
-
-        <div class="submit-container">
-          <button
-            type="button"
-            class="btn btn-success btn-lg"
-            id="submit-cobro"
-          >
-            Realizar Cobro
-          </button>
-        </div>
-      </div>
     </div>
 
-    <!-- Modal de Confirmación -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Aquí se mostrará el mensaje de éxito o error -->
-        <p id="modal-message">Cobro registrado exitosamente.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary" id="print-confirmation">Imprimir</button>
-      </div>
-    </div>
-  </div>
-</div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const response = await fetch("/api/usuarios");
+                const usuarios = await response.json();
+                const usuarioCobroSelect = document.getElementById("usuarioCobro");
+
+                usuarios.forEach((usuario) => {
+                    const option = document.createElement("option");
+                    option.value = usuario.id;
+                    option.textContent = usuario.username;
+                    usuarioCobroSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error al cargar los usuarios:", error);
+            }
+        });
+
+        document.getElementById("buscarInquilinoForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const nombreInquilino = document.getElementById("nombreInquilino").value;
+            const usuarioCobro = document.getElementById("usuarioCobro").value;
+            const periodoCobrar = document.getElementById("periodoCobrar").value;
+
+            const metodoPagoEfectivo = document.getElementById("metodoPagoEfectivo").checked ? "efectivo" : "";
+            const metodoPagoTransferencia = document.getElementById("metodoPagoTransferencia").checked ? "transferencia" : "";
+
+            try {
+                const response = await fetch(`/api/cobro-alquileres?nombre=${encodeURIComponent(nombreInquilino)}&usuario=${encodeURIComponent(usuarioCobro)}&periodo=${periodoCobrar}&metodoPago=${encodeURIComponent(metodoPagoEfectivo || metodoPagoTransferencia)}`);
+                const data = await response.json();
+                const resultadoDiv = document.getElementById("resultado");
+                resultadoDiv.innerHTML = "";
+
+                if (data.length > 0) {
+                    let html = "<h2 class='text-center mb-4'><i class='fas fa-file-contract'></i> Detalles de los Contratos</h2>";
+                    html += '<div class="table-responsive"><table class="table table-hover">';
+                    html += "<thead class='thead-dark'><tr><th>Propietario</th><th>Importe del Período</th><th>Expensas Comunes</th><th>Expensas Extraordinarias</th><th>Calle</th><th>Número</th><th>Dto</th><th>Total a Cobrar</th></tr></thead>";
+                    html += "<tbody>";
+
+                    data.forEach((contrato) => {
+                        const total = (parseFloat(contrato.importe_periodo) + parseFloat(contrato.expensas_comunes) + parseFloat(contrato.expensas_extraordinarias)).toFixed(2);
+                        html += `<tr>
+                            <td>${contrato.propietario}</td>
+                            <td>$${contrato.importe_periodo}</td>
+                            <td>$${contrato.expensas_comunes || "N/A"}</td>
+                            <td>$${contrato.expensas_extraordinarias || "N/A"}</td>
+                            <td>${contrato.calle || "N/A"}</td>
+                            <td>${contrato.numero || "N/A"}</td>
+                            <td>${contrato.dto || "N/A"}</td>
+                            <td><strong>$${total}</strong></td>
+                        </tr>`;
+                    });
+
+                    html += "</tbody></table></div>";
+                    resultadoDiv.innerHTML = html;
+
+                    document.getElementById("procesarCobroSection").style.display = "block";
+                } else {
+                    resultadoDiv.innerHTML = `<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle"></i> No se encontraron contratos para el inquilino "${nombreInquilino}".</div>`;
+                    document.getElementById("procesarCobroSection").style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error al buscar el inquilino:", error);
+                document.getElementById("resultado").innerHTML = "<div class='alert alert-danger' role='alert'><i class='fas fa-exclamation-circle'></i> Error al buscar el inquilino. Por favor, inténtelo de nuevo.</div>";
+            }
+        });
+
+        document.getElementById("procesarCobroBtn").addEventListener("click", async function () {
+            const nombreInquilino = document.getElementById("nombreInquilino").value;
+            const usuarioCobro = document.getElementById("usuarioCobro").options[document.getElementById("usuarioCobro").selectedIndex].text;
+            const periodoCobrar = document.getElementById("periodoCobrar").value;
+            const metodoPagoEfectivo = document.getElementById("metodoPagoEfectivo").checked;
+            const metodoPagoTransferencia = document.getElementById("metodoPagoTransferencia").checked;
+
+            let metodoPago = "";
+            if (metodoPagoEfectivo) metodoPago = "efectivo";
+            if (metodoPagoTransferencia) metodoPago += (metodoPago ? "," : "") + "transferencia";
+
+            const contratos = [...document.querySelectorAll("#resultado tbody tr")].map((row) => ({
+                propietario: row.cells[0].textContent,
+                importe_periodo: row.cells[1].textContent.replace('$', ''),
+                expensas_comunes: row.cells[2].textContent.replace('$', ''),
+                expensas_extraordinarias: row.cells[3].textContent.replace('$', ''),
+                calle: row.cells[4].textContent,
+                numero: row.cells[5].textContent,
+                dto: row.cells[6].textContent,
+                total: row.cells[7].textContent.replace('$', '')
+            }));
+
+            try {
+                const response = await fetch("/api/procesar-cobro", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        nombreInquilino,
+                        usuarioCobro,
+                        periodoCobrar,
+                        metodoPago,
+                        estado1: "Cobrado",
+                        estado2: "Pendiente de rendición",
+                        contratos,
+                    }),
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("El cobro fue procesado exitosamente.");
+                    // Generar y descargar el PDF
+                    generatePDF(nombreInquilino, usuarioCobro, periodoCobrar, metodoPago, contratos);
+                    window.location.reload();
+                } else {
+                    alert("Hubo un error al procesar el cobro: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error al procesar el cobro:", error);
+                alert("Hubo un error al procesar el cobro.");
+            }
+        });
+
+         
+        function generatePDF(nombreInquilino, usuarioCobro, periodoCobrar, metodoPago, contratos) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+        
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const textColor = [50, 50, 50];
+            const lightGrey = [240, 240, 240];
+            const darkGrey = [200, 200, 200];
+        
+            function addText(text, x, y, fontSize = 10, fontStyle = "normal", options = {}) {
+                doc.setFontSize(fontSize);
+                doc.setFont("helvetica", fontStyle);
+                doc.setTextColor(...textColor);
+                doc.text(text, x, y, options);
+            }
+        
+            function addLine(x1, y1, x2, y2) {
+                doc.setDrawColor(...darkGrey);
+                doc.line(x1, y1, x2, y2);
+            }
+        
+            // Encabezado
+            doc.setFillColor(...lightGrey);
+            doc.rect(0, 0, pageWidth, 40, "F");
+            addText("RECIBO", margin, 15, 24, "bold");
+            addText(`Fecha: ${new Date().toLocaleDateString()}`, pageWidth - margin, 15, 10, "normal", { align: "right" });
+            addText("Inmobiliaria Fernandez Lopez", margin, 25, 12, "normal");
+            addText("Av Congreso 4015 Caba Coghlan ", margin, 30, 10, "normal");
+            addText("Tel: (123) 456-7890", margin, 35, 10, "normal");
+        
+            // Información del cliente
+            let y = 60;
+            addText("FACTURAR A:", margin, y, 12, "bold");
+            y += 10;
+            addText(`Cliente: ${nombreInquilino}`, margin, y, 10);
+            y += 10;
+            addText(`Período: ${periodoCobrar}`, margin, y, 10);
+            y += 10;
+            addText(`Método de pago: ${metodoPago}`, margin, y, 10);
+        
+            // Tabla de contratos
+            y += 20;
+            const tableTop = y;
+            const tableBottom = pageHeight - 40;
+            const colWidths = [60, 35, 35, 35];
+        
+            // Encabezados de la tabla
+            doc.setFillColor(...darkGrey);
+            doc.rect(margin, y, pageWidth - 2 * margin, 10, "F");
+            addText("Descripción", margin + 2, y + 7, 10, "bold");
+            addText("Alquiler", margin + colWidths[0] + 2, y + 7, 10, "bold");
+            addText("Expensas", margin + colWidths[0] + colWidths[1] + 2, y + 7, 10, "bold");
+            addText("Total", pageWidth - margin - colWidths[3] + 2, y + 7, 10, "bold");
+            y += 10;
+        
+            // Filas de la tabla
+            contratos.forEach((contrato, index) => {
+                if (y > tableBottom - 20) {
+                    doc.addPage();
+                    y = margin;
+                }
+        
+                addText(`${contrato.calle} ${contrato.numero}, Dto: ${contrato.dto || "N/A"}`, margin + 2, y + 5, 9);
+                addText(`$${contrato.importe_periodo}`, margin + colWidths[0] + 2, y + 5, 9);
+                const expensas = (parseFloat(contrato.expensas_comunes) + parseFloat(contrato.expensas_extraordinarias)).toFixed(2);
+                addText(`$${expensas}`, margin + colWidths[0] + colWidths[1] + 2, y + 5, 9);
+                addText(`$${contrato.total}`, pageWidth - margin - colWidths[3] + 2, y + 5, 9);
+        
+                y += 10;
+                addLine(margin, y, pageWidth - margin, y);
+            });
+        
+            // Total
+            y += 10;
+            const totalGeneral = contratos.reduce((sum, contrato) => sum + parseFloat(contrato.total), 0).toFixed(2);
+            addText("Total:", pageWidth - margin - colWidths[3] - colWidths[2], y + 5, 12, "bold");
+            addText(`$${totalGeneral}`, pageWidth - margin - colWidths[3] + 2, y + 5, 12, "bold");
+        
+            // Pie de página
+            const footerY = pageHeight - 20;
+            addLine(margin, footerY, pageWidth - margin, footerY);
+            addText("Gracias por su pago", pageWidth / 2, footerY + 10, 10, "normal", { align: "center" });
+        
+            // Guardar el PDF
+            doc.save(`factura_alquiler_${nombreInquilino.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
 
 
-    <!-- Modal -->
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            ¿Desea imprimir el comprobante?
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-            <button type="button" class="btn btn-primary" id="print-confirmation">Sí, Imprimir</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
-
-    <script src="/js/cobroalquiler.js"></script>
-  </body>
+    </script>
+</body>
 </html>

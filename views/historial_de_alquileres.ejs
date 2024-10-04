@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Alquileres - Gráfico de Gantt</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .pagado {
+            background-color: #3CB371; /* Verde para "Cobrado" */
+            color: white;
+        }
+        .no-pagado {
+            background-color: #FF4500; /* Rojo para "No Cobrado" */
+            color: white;
+        }
+        .gantt-bar {
+            height: 30px;
+            width: 100%;
+            display: inline-block;
+        }
+        .legend {
+            margin-bottom: 20px;
+        }
+        .legend div {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .legend .box {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('navbar') %>
+    <div class="container mt-5">
+        <h1 class="text-center">Historial de Alquileres</h1>
+        
+        <!-- Leyenda de colores -->
+        <div class="legend text-center">
+            <div><span class="box" style="background-color: #3CB371;"></span> Cobrado</div>
+            <div><span class="box" style="background-color: #FF4500;"></span> No Cobrado</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered mt-4" id="tablaCobros">
+                <thead>
+                    <tr>
+                        <th>Inquilino</th>
+                        <!-- Las columnas de periodos se agregarán dinámicamente -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los cobros aparecerán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Hacer la solicitud AJAX para obtener los cobros de alquiler al cargar la página
+            $.ajax({
+                url: '/cobro_alquileres',  // Ruta para obtener los datos
+                method: 'GET',
+                success: function(response) {
+                    console.log(response);
+
+                    // Limpiar la tabla antes de llenarla con los nuevos datos
+                    $('#tablaCobros tbody').empty();
+                    $('#tablaCobros thead tr').find('th:gt(0)').remove(); // Limpiar columnas de periodos anteriores
+
+                    // Agrupar los cobros por inquilino
+                    const cobrosPorInquilino = {};
+
+                    response.forEach(cobro => {
+                        if (!cobrosPorInquilino[cobro.inquilino]) {
+                            cobrosPorInquilino[cobro.inquilino] = {
+                                inquilino: cobro.inquilino,
+                                cobros: []
+                            };
+                        }
+                        cobrosPorInquilino[cobro.inquilino].cobros.push({
+                            periodo: cobro.periodo,
+                            estado: cobro.estado1  // Cobrado o No Cobrado
+                        });
+                    });
+
+                    // Crear una fila para cada inquilino
+                    for (const inquilino in cobrosPorInquilino) {
+                        const cobros = cobrosPorInquilino[inquilino].cobros;
+                        
+                        let fila = `<tr>
+                                        <td>${cobrosPorInquilino[inquilino].inquilino}</td>`;
+                        
+                        // Generar las barras de Gantt para cada cobro
+                        cobros.forEach(cobro => {
+                            // Si es la primera fila, agregar encabezados de periodo
+                            if ($('#tablaCobros thead th').length - 1 < cobros.length) {
+                                $('#tablaCobros thead tr').append(`<th>${cobro.periodo}</th>`);
+                            }
+                            // Determinar el color de la barra según el estado
+                            const estadoClase = cobro.estado === 'Cobrado' ? 'pagado' : 'no-pagado';
+                            fila += `<td>
+                                        <div class="gantt-bar ${estadoClase}">${cobro.estado === 'Cobrado' ? '✔️' : '❌'}</div>
+                                     </td>`;
+                        });
+
+                        fila += `</tr>`;
+                        $('#tablaCobros tbody').append(fila);
+                    }
+                },
+                error: function() {
+                    alert('Error al cargar los datos');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

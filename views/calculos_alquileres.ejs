@@ -3,147 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabla de Resultados</title>
+    <title>Cálculos de Alquileres</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
         }
+
         h1 {
-            margin-bottom: 20px;
+            color: #343a40;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
+
+        #status {
+            font-size: 1.25rem;
+            color: #6c757d;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
+
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        th {
-            background-color: #cce5ff;
-            text-align: center;
+
+        .table thead th {
+            background-color: #18bc9c;
+            color: #fff;
+            border: none;
         }
-        .contract-row {
-            background-color: #f0f8ff;
+
+        .table tbody td {
+            border-top: 1px solid #dee2e6;
         }
-        .importe-negrita {
-            font-weight: bold;
-            font-size: 1.2em; /* Aumenta el tamaño del importe */
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
         }
-        .fecha-trimestre {
-            display: block;
-            color: #555;
-            font-size: 0.8em; /* Reduce el tamaño de la fecha */
+
+        .contract-container {
+            margin-bottom: 2rem;
         }
-        /* Estilos para columnas de trimestre */
-        .trimestre-1 { background-color: #f8d7da; }
-        .trimestre-2 { background-color: #f9e2e7; }
-        .trimestre-3 { background-color: #fef7e3; }
-        .trimestre-4 { background-color: #d4edda; }
-        .trimestre-5 { background-color: #d1ecf1; }
-        .trimestre-6 { background-color: #cce5ff; }
-        .trimestre-7 { background-color: #e2e3e5; }
-        .trimestre-8 { background-color: #e9ecef; }
+
+        .contract-container h2 {
+            color: #343a40;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
-
-    <!-- Incluir el navbar -->
     <%- include('navbar') %>
-    <h1 class="text-center">Tabla de Resultados</h1>
-    <div class="container">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th rowspan="2">Id Contrato</th>
-                    <th rowspan="2">Tipo Incremento</th>
-                    <th colspan="8">Períodos</th>
-                </tr>
-                <tr>
-                    <th class="trimestre-1">Periodo 1</th>
-                    <th class="trimestre-2">Periodo 2</th>
-                    <th class="trimestre-3">Periodo 3</th>
-                    <th class="trimestre-4">Periodo 4</th>
-                    <th class="trimestre-5">Periodo 5</th>
-                    <th class="trimestre-6">Periodo 6</th>
-                    <th class="trimestre-7">Periodo 7</th>
-                    <th class="trimestre-8">Periodo 8</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-resultados">
-                <!-- Los datos se mostrarán aquí -->
-            </tbody>
-        </table>
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Cálculos de Alquileres</h1>
+        <div id="status" class="mb-3"></div>
+        <div id="datos"></div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   
     <script>
-        $.ajax({
-            type: 'GET',
-            url: '/resumen',
-            success: function(data) {
-                var resultados = data;
-                var contratos = {};
-
-                // Organiza los datos por contrato
-                resultados.forEach(function(resultado) {
-                    var idContrato = resultado.id;
-                    var tipoIncremento = resultado.tipo_incremento;
-
-                    // Extrae el número del periodo (e.g., 'Cuatrimestre 3')
-                    var periodoMatch = resultado.periodo.match(/(\d+)/);
-                    var periodoNumero = periodoMatch ? parseInt(periodoMatch[1], 10) : null;
-
-                    if (periodoNumero !== null && periodoNumero >= 1 && periodoNumero <= 8) {
-                        if (!contratos[idContrato]) {
-                            contratos[idContrato] = {
-                                tipoIncremento: tipoIncremento,
-                                trimestres: ['', '', '', '', '', '', '', ''] // 8 espacios para los 8 trimestres/cuatrimestres
-                            };
-                        }
-
-                        // Formatea el importe en el formato adecuado
-                        var importeFormateado = parseFloat(resultado.importe_periodo).toLocaleString('es-AR', {
-                            style: 'currency',
-                            currency: 'ARS'
-                        });
-
-                        var detallePeriodo = `
-                            <span class="importe-negrita">${importeFormateado}</span>
-                            <span class="fecha-trimestre">(${resultado.periodo_inicio} - ${resultado.periodo_fin})</span>
-                        `;
-
-                        contratos[idContrato].trimestres[periodoNumero - 1] = detallePeriodo;
-                    } else {
-                        console.error('El periodo es inválido o está indefinido:', resultado.periodo);
+        const statusElement = document.getElementById('status');
+        const datosElement = document.getElementById('datos');
+        
+        statusElement.textContent = 'Cargando datos...';
+        
+        fetch('/api/calculos-alquileres')
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                statusElement.textContent = 'Datos cargados con éxito';
+        
+                // Limpiar el contenedor de datos
+                datosElement.innerHTML = '';
+        
+                // Función para mapear valores
+                const tipoIncrementoMap = {
+                    1: 'Mensual',
+                    2: 'Anual',
+                    3: 'Otro'
+                };
+        
+                // Agrupar datos por contrato_id
+                const groupedData = data.reduce((acc, item) => {
+                    if (!acc[item.contrato_id]) {
+                        acc[item.contrato_id] = [];
                     }
-                });
-
-                // Añade los contratos a la tabla
-                for (var idContrato in contratos) {
-                    var fila = `
-                        <tr class="contract-row">
-                            <td>${idContrato}</td>
-                            <td>${contratos[idContrato].tipoIncremento}</td>
-                            <td class="trimestre-1">${contratos[idContrato].trimestres[0]}</td>
-                            <td class="trimestre-2">${contratos[idContrato].trimestres[1]}</td>
-                            <td class="trimestre-3">${contratos[idContrato].trimestres[2]}</td>
-                            <td class="trimestre-4">${contratos[idContrato].trimestres[3]}</td>
-                            <td class="trimestre-5">${contratos[idContrato].trimestres[4]}</td>
-                            <td class="trimestre-6">${contratos[idContrato].trimestres[5]}</td>
-                            <td class="trimestre-7">${contratos[idContrato].trimestres[6]}</td>
-                            <td class="trimestre-8">${contratos[idContrato].trimestres[7]}</td>
+                    acc[item.contrato_id].push(item);
+                    return acc;
+                }, {});
+        
+                // Función para ordenar los periodos numéricamente
+                function ordenarPorPeriodo(a, b) {
+                    const numeroPeriodoA = parseInt(a.periodo.match(/\d+/)[0]);
+                    const numeroPeriodoB = parseInt(b.periodo.match(/\d+/)[0]);
+                    return numeroPeriodoA - numeroPeriodoB;
+                }
+        
+                // Crear una tabla para cada contrato_id
+                Object.keys(groupedData).forEach(contrato_id => {
+                    // Ordenar los datos por el número en 'periodo'
+                    groupedData[contrato_id].sort(ordenarPorPeriodo);
+        
+                    const contractTable = document.createElement('table');
+                    contractTable.className = 'table table-bordered table-striped mb-4';
+        
+                    // Crear encabezado de la tabla
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo Incremento</th>
+                            <th>Propietario</th>
+                            <th>Inquilino</th>
+                            <th>Periodo</th>
+                            <th>Inicio del Periodo</th>
+                            <th>Fin del Periodo</th>
+                            <th>Importe del Periodo</th>
+                            <th>ICL Inicio</th>
+                            <th>ICL Fin</th>
                         </tr>
                     `;
-                    $('#tabla-resultados').append(fila);
+                    contractTable.appendChild(thead);
+        
+                    // Crear cuerpo de la tabla
+                    const tbody = document.createElement('tbody');
+                    groupedData[contrato_id].forEach(contrato => {
+                        const row = document.createElement('tr');
+        
+                        // Mapear los valores
+                        const tipoIncremento = tipoIncrementoMap[contrato.tipo_incremento] || contrato.tipo_incremento;
+        
+                        // Agregar celdas a la fila
+                        const cells = [
+                            contrato.id,
+                            tipoIncremento,
+                            contrato.propietario,
+                            contrato.inquilino,
+                            contrato.periodo,
+                            contrato.periodo_inicio,
+                            contrato.periodo_fin,
+                            contrato.importe_periodo,
+                            contrato.icl_inicio,
+                            contrato.icl_fin
+                        ];
+        
+                        cells.forEach((value, index) => {
+                            const cell = document.createElement('td');
+                            if (index === 7) { // 7 es el índice de "Importe del Periodo"
+                                const input = document.createElement('input');
+                                input.type = 'number';
+                                input.value = value;
+                                input.className = 'form-control';
+                                input.dataset.id = contrato.id;
+                                input.dataset.periodo = contrato.periodo;
+                                input.dataset.contratoId = contrato.contrato_id;
+                                input.addEventListener('change', actualizarImporte);
+                                cell.appendChild(input);
+                            } else {
+                                cell.textContent = value;
+                            }
+                            row.appendChild(cell);
+                        });
+        
+                        tbody.appendChild(row);
+                    });
+                    contractTable.appendChild(tbody);
+        
+                    // Agregar la tabla al contenedor de datos
+                    const contractContainer = document.createElement('div');
+                    contractContainer.className = 'contract-container';
+                    contractContainer.innerHTML = `<h2>Contrato ID: ${contrato_id}</h2>`;
+                    contractContainer.appendChild(contractTable);
+        
+                    datosElement.appendChild(contractContainer);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                statusElement.textContent = 'Error al cargar los datos';
+            });
+        
+        function actualizarImporte(event) {
+            const input = event.target;
+            const nuevoImporte = parseFloat(input.value);
+            const contratoId = input.dataset.contratoId;
+            const periodo = input.dataset.periodo;
+        
+            // Añadir clase para indicar que está cargando
+            input.classList.add('updating');
+        
+            fetch('/api/actualizar-importe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contratoId,
+                    periodo,
+                    nuevoImporte
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Importe actualizado con éxito');
+                    // Actualizar el valor por defecto para futuras comparaciones
+                    input.defaultValue = nuevoImporte;
+                    // Mostrar un mensaje de éxito
+                    mostrarMensaje(input, 'Importe actualizado correctamente', 'success');
+                } else {
+                    console.error('Error al actualizar el importe');
+                    // Revertir el valor en caso de error
+                    input.value = input.defaultValue;
+                    // Mostrar un mensaje de error
+                    mostrarMensaje(input, 'Error al actualizar el importe', 'error');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.log('Error al obtener los datos:', error);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                // Revertir el valor en caso de error
+                input.value = input.defaultValue;
+                // Mostrar un mensaje de error
+                mostrarMensaje(input, 'Error de conexión', 'error');
+            })
+            .finally(() => {
+                // Remover clase de carga
+                input.classList.remove('updating');
+            });
+        }
+        
+        function mostrarMensaje(input, mensaje, tipo) {
+            const mensajeElement = document.createElement('div');
+            mensajeElement.textContent = mensaje;
+            mensajeElement.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} mt-2`;
+            
+            // Insertar el mensaje después del input
+            input.parentNode.insertAdjacentElement('afterend', mensajeElement);
+        
+            // Remover el mensaje después de 3 segundos
+            setTimeout(() => {
+                mensajeElement.remove();
+            }, 3000);
+        }
+        
+        // Añadir estilos para la animación de carga
+        const style = document.createElement('style');
+        style.textContent = `
+            .updating {
+                opacity: 0.5;
+                pointer-events: none;
             }
-        });
+        `;
+        document.head.appendChild(style);
+           
     </script>
+    
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
