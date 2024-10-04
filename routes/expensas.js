@@ -57,23 +57,55 @@ router.delete('/eliminar-expensas/:id', (req, res) => {
     });
 });
 
-// Ruta para actualizar expensas por ID
-router.put('/actualizar-expensas/:id', (req, res) => {
+// Función para registrar el egreso en caja_diaria
+function registrarEgresoExpensas(expensas, callback) {
+    const totalExpensas = parseFloat(expensas.expensasComunes) + parseFloat(expensas.expensasExtraordinarias);
+    const fechaActual = new Date().toISOString().split('T')[0];
+  
+    const sql = `
+      INSERT INTO caja_diaria (tipo, fecha, monto, metodo_pago, motivo, descripcion)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+  
+    db.run(sql, [
+      "egreso",
+      fechaActual,
+      totalExpensas,
+      "transferencia",
+      "Pago de expensas",
+      `Egreso por pago de expensas a consorcio del contrato ${expensas.nombrePropietario} del periodo ${expensas.periodo}`
+    ], callback);
+  }
+  
+  // Ruta para actualizar expensas por ID
+  router.put('/actualizar-expensas/:id', (req, res) => {
     const { id } = req.params;
     const { calle, numero, nombrePropietario, expensasComunes, expensasExtraordinarias, periodo, estado } = req.body;
-    
+  
     const sql = `
-        UPDATE expensas 
-        SET calle = ?, numero = ?, nombre_propietario = ?, expensas_comunes = ?, expensas_extraordinarias = ?, periodo = ?, estado = ?
-        WHERE id = ?
+      UPDATE expensas 
+      SET calle = ?, numero = ?, nombre_propietario = ?, expensas_comunes = ?, expensas_extraordinarias = ?, periodo = ?, estado = ?
+      WHERE id = ?
     `;
+  
     db.run(sql, [calle, numero, nombrePropietario, expensasComunes, expensasExtraordinarias, periodo, estado, id], function(err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ success: true });
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+  
+      // Si el estado es "Pagado al consorcio", registrar el egreso
+      if (estado === 'Pagado al consorcio') {
+        registrarEgresoExpensas(req.body, (egresoErr) => {
+          if (egresoErr) {
+            return res.status(500).json({ error: "Expensas actualizadas, pero hubo un error al registrar el egreso: " + egresoErr.message });
+          }
+          res.json({ success: true, message: "Expensas actualizadas y egreso registrado correctamente" });
+        });
+      } else {
+        res.json({ success: true, message: "Expensas actualizadas correctamente" });
+      }
     });
-});
+  });
 
 // Ruta para obtener una expensa por ID
 router.get('/obtener-expensas/:id', (req, res) => {
