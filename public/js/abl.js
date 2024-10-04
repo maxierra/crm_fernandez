@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', obtenerPagosABL);
 
 function buscarInquilino() {
@@ -31,6 +30,7 @@ function guardarPagoABL() {
     const nombre = document.getElementById('nombre').value; // Recupera el nombre del campo oculto
     const monto_abl = document.getElementById('monto_abl').value;
     const periodo = document.getElementById('periodo').value;
+    const metodo_pago = document.getElementById('metodo_pago').value; // Obtener el método de pago
 
     const method = id_pago ? 'PUT' : 'POST'; // Usa PUT si id_pago existe, de lo contrario usa POST
     const url = id_pago ? `/api/pagos-abl/editar-pago-abl/${id_pago}` : '/api/pagos-abl/guardar-pago-abl';
@@ -40,7 +40,7 @@ function guardarPagoABL() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ calle, numero, nombre, monto_abl, periodo })
+        body: JSON.stringify({ calle, numero, nombre, monto_abl, periodo, metodo_pago }) // Incluye método de pago
     })
     .then(response => response.json())
     .then(data => {
@@ -68,6 +68,7 @@ function obtenerPagosABL() {
                     <td>${pago.nombre}</td>
                     <td>${pago.monto_abl}</td>
                     <td>${pago.periodo}</td>
+                    <td>${pago.metodo_pago}</td> <!-- Mostrar método de pago en la tabla -->
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="cargarDatosParaEdicion(${pago.id})">Editar</button>
                         <button class="btn btn-danger btn-sm" onclick="eliminarPagoABL(${pago.id})">Eliminar</button>
@@ -90,13 +91,13 @@ function cargarDatosParaEdicion(id) {
                 document.getElementById('nombre').value = data.nombre;
                 document.getElementById('monto_abl').value = data.monto_abl;
                 document.getElementById('periodo').value = data.periodo;
+                document.getElementById('metodo_pago').value = data.metodo_pago; // Cargar método de pago en la edición
             } else {
                 alert('No se encontró el pago ABL.');
             }
         })
         .catch(error => console.error('Error al cargar datos para edición:', error));
 }
-
 
 function eliminarPagoABL(id) {
     fetch(`/api/pagos-abl/eliminar-pago-abl/${id}`, {

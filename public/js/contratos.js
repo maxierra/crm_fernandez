@@ -1,4 +1,3 @@
-
 $(document).ready(function() {
     function showAlert(message) {
         $('#alertModalBody').text(message);
@@ -26,7 +25,8 @@ $(document).ready(function() {
             tipo_incremento: $('#tipo_incremento').val(),
             finalizacion_contrato: $('#finalizacion_contrato').val(),
             metodo_pago: $('#metodo_pago').val(),
-            monto_deposito: $('#monto_deposito').val()
+            monto_deposito: $('#monto_deposito').val(),
+            estado: $('#estado').val() // Agregado estado
         };
         const url = contratoId ? `/contratos/update/${contratoId}` : '/contratos/add';
 
